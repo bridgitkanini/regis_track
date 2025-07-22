@@ -1,10 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/20/solid';
+
+type SortDirection = 'asc' | 'desc';
 
 type SortConfig = {
-  key: keyof Activity;
-  direction: 'ascending' | 'descending';
+  key: string;
+  direction: SortDirection;
 };
 
 type Activity = {
@@ -15,13 +22,20 @@ type Activity = {
   timestamp: string;
   user: {
     username: string;
+    avatar?: string;
   };
 };
 
 interface RecentActivityProps {
   activities: Activity[];
-  itemsPerPage?: number;
+  itemsPerPage: number;
+  currentPage: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onSort: (key: string) => void;
+  sortConfig: SortConfig;
 }
+
 const getActionIcon = (action: string) => {
   switch (action.toLowerCase()) {
     case 'create':
@@ -103,53 +117,70 @@ const getActionIcon = (action: string) => {
   }
 };
 
-export const RecentActivity = ({ 
-  activities, 
-  itemsPerPage = 5 
+export const RecentActivity = ({
+  activities,
+  itemsPerPage,
+  currentPage,
+  totalItems,
+  onPageChange,
+  onSort,
+  sortConfig,
 }: RecentActivityProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: 'timestamp',
-    direction: 'descending'
-  });
+  // Calculate total pages
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Sort activities
-  const sortedActivities = useMemo(() => {
-    const sortableItems = [...activities];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [activities, sortConfig]);
+  // Calculate the range of items being displayed
+  const startItem = Math.min((currentPage - 1) * itemsPerPage + 1, totalItems);
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // Pagination logic
-  const totalPages = Math.ceil(sortedActivities.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedActivities.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handleSort = (key: keyof Activity) => {
-    setSortConfig(prevConfig => ({
-      key,
-      direction: 
-        prevConfig.key === key && prevConfig.direction === 'ascending'
-          ? 'descending'
-          : 'ascending'
-    }));
-    setCurrentPage(1); // Reset to first page when sorting changes
+  // Handle sort click
+  const handleSort = (key: string) => {
+    onSort(key);
   };
 
+  // Handle page change
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    onPageChange(page);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages are less than or equal to maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show first page, current page, and pages around it
+      const startPage = Math.max(
+        1,
+        currentPage - Math.floor(maxPagesToShow / 2)
+      );
+      const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+      // Adjust if we're near the end
+      if (endPage - startPage + 1 < maxPagesToShow) {
+        const diff = maxPagesToShow - (endPage - startPage + 1);
+        if (startPage - diff > 0) {
+          for (let i = startPage - diff; i <= endPage; i++) {
+            pageNumbers.push(i);
+          }
+        } else {
+          for (let i = 1; i <= maxPagesToShow; i++) {
+            pageNumbers.push(i);
+          }
+        }
+      } else {
+        for (let i = startPage; i <= endPage; i++) {
+          pageNumbers.push(i);
+        }
+      }
+    }
+
+    return pageNumbers;
   };
 
   if (activities.length === 0) {
@@ -166,44 +197,46 @@ export const RecentActivity = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort('action')}
               >
                 <div className="flex items-center">
                   Action
-                  {sortConfig.key === 'action' && (
-                    sortConfig.direction === 'ascending' 
-                      ? <ChevronUpIcon className="ml-1 h-4 w-4" />
-                      : <ChevronDownIcon className="ml-1 h-4 w-4" />
-                  )}
+                  {sortConfig.key === 'action' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ChevronUpIcon className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDownIcon className="ml-1 h-4 w-4" />
+                    ))}
                 </div>
               </th>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Details
               </th>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort('timestamp')}
               >
                 <div className="flex items-center">
                   When
-                  {sortConfig.key === 'timestamp' && (
-                    sortConfig.direction === 'ascending' 
-                      ? <ChevronUpIcon className="ml-1 h-4 w-4" />
-                      : <ChevronDownIcon className="ml-1 h-4 w-4" />
-                  )}
+                  {sortConfig.key === 'timestamp' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ChevronUpIcon className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDownIcon className="ml-1 h-4 w-4" />
+                    ))}
                 </div>
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentItems.map((activity) => (
+            {activities.map((activity) => (
               <tr key={activity.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -222,8 +255,13 @@ export const RecentActivity = ({
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-gray-900">
-                    <span className="font-medium">{activity.user.username}</span>{' '}
-                    {activity.action.toLowerCase()}d a {activity.collection.toLowerCase()}
+                    <span className="font-medium">
+                      {activity.user.username}
+                    </span>{' '}
+                    {activity.action.toLowerCase()}
+                    {activity.action.toLowerCase().endsWith('e')
+                      ? 'd'
+                      : 'ed'} a {activity.collection.toLowerCase()}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -249,7 +287,9 @@ export const RecentActivity = ({
               Previous
             </button>
             <button
-              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              onClick={() =>
+                handlePageChange(Math.min(totalPages, currentPage + 1))
+              }
               disabled={currentPage === totalPages}
               className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
@@ -259,15 +299,16 @@ export const RecentActivity = ({
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min(indexOfLastItem, sortedActivities.length)}
-                </span>{' '}
-                of <span className="font-medium">{sortedActivities.length}</span> results
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
+                <span className="font-medium">{totalItems}</span> results
               </p>
             </div>
             <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
@@ -276,35 +317,25 @@ export const RecentActivity = ({
                   <span className="sr-only">Previous</span>
                   <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pages around current page
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        currentPage === pageNum
-                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+
+                {getPageNumbers().map((pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      currentPage === pageNumber
+                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                ))}
+
                 <button
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    handlePageChange(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                 >
