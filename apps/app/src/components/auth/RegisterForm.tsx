@@ -3,48 +3,55 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useDispatch } from 'react-redux';
+import { useRegisterMutation } from '../../features/auth/authApi';
+import { loginSuccess } from '../../features/auth/authSlice';
+import { useApiError } from '../../hooks/useApiError';
 
 // Form validation schema
 const registerSchema = yup.object().shape({
-  username: yup.string().required('Username is required'),
+  firstName: yup.string().required('First name is required'),
+  lastName: yup.string().required('Last name is required'),
   email: yup.string().email('Invalid email').required('Email is required'),
   password: yup
     .string()
     .required('Password is required')
-    .min(8, 'Password must be at least 8 characters'),
+    .min(8, 'Password must be at least 8 characters')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    ),
   confirmPassword: yup
     .string()
     .oneOf([yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm Password is required'),
+    .required('Please confirm your password'),
 });
 
 type RegisterFormData = yup.InferType<typeof registerSchema>;
 
 export const RegisterForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { register: registerUser } = useAuth();
+  const [register, { error: apiError, isLoading }] = useRegisterMutation();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  useApiError(apiError);
 
   const {
-    register,
+    register: formRegister,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: yupResolver(registerSchema),
   });
 
-  const onSubmit = async (data: Omit<RegisterFormData, 'confirmPassword'>) => {
+  const onSubmit = async (data: RegisterFormData) => {
     try {
-      setError('');
-      setIsLoading(true);
-      await registerUser(data);
+      const { confirmPassword, ...userData } = data;
+      const response = await register(userData).unwrap();
+      dispatch(loginSuccess(response));
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to register');
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      // Error is already handled by useApiError
+      console.error('Registration error:', err);
     }
   };
 
@@ -65,51 +72,49 @@ export const RegisterForm = () => {
             </Link>
           </p>
         </div>
-
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{error}</h3>
-              </div>
-            </div>
-          </div>
-        )}
-
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                autoComplete="username"
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
-                  errors.username ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                placeholder="Username"
-                {...register('username')}
-              />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
-              )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="first-name" className="sr-only">
+                  First name
+                </label>
+                <input
+                  id="first-name"
+                  type="text"
+                  autoComplete="given-name"
+                  className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                    errors.firstName ? 'border-red-300' : 'border-gray-300'
+                  } placeholder-gray-500 text-gray-900 rounded-tl-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                  placeholder="First name"
+                  {...formRegister('firstName')}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="last-name" className="sr-only">
+                  Last name
+                </label>
+                <input
+                  id="last-name"
+                  type="text"
+                  autoComplete="family-name"
+                  className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                    errors.lastName ? 'border-red-300' : 'border-gray-300'
+                  } placeholder-gray-500 text-gray-900 rounded-tr-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                  placeholder="Last name"
+                  {...formRegister('lastName')}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
             </div>
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -123,10 +128,12 @@ export const RegisterForm = () => {
                   errors.email ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Email address"
-                {...register('email')}
+                {...formRegister('email')}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div>
@@ -141,15 +148,17 @@ export const RegisterForm = () => {
                   errors.password ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Password"
-                {...register('password')}
+                {...formRegister('password')}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
             <div>
               <label htmlFor="confirm-password" className="sr-only">
-                Confirm Password
+                Confirm password
               </label>
               <input
                 id="confirm-password"
@@ -158,11 +167,13 @@ export const RegisterForm = () => {
                 className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
                   errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                placeholder="Confirm Password"
-                {...register('confirmPassword')}
+                placeholder="Confirm password"
+                {...formRegister('confirmPassword')}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
           </div>
@@ -175,13 +186,14 @@ export const RegisterForm = () => {
               className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               required
             />
-            <label
-              htmlFor="terms"
-              className="ml-2 block text-sm text-gray-900"
-            >
+            <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
               I agree to the{' '}
               <a href="#" className="text-indigo-600 hover:text-indigo-500">
-                Terms and Conditions
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                Privacy Policy
               </a>
             </label>
           </div>
@@ -217,7 +229,7 @@ export const RegisterForm = () => {
                   Creating account...
                 </>
               ) : (
-                'Create Account'
+                'Create account'
               )}
             </button>
           </div>
