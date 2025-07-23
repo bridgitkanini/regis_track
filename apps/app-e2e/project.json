@@ -1,0 +1,47 @@
+{
+  "name": "app-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/app-e2e/src",
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:test",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/app-e2e"],
+      "options": {
+        "config": "apps/app-e2e/playwright.config.ts",
+        "baseUrl": "http://localhost:4200"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "app:serve:production"
+        },
+        "ci": {
+          "devServerTarget": "app:serve-static",
+          "reporter": "github"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/app-e2e/**/*.{js,ts}"]
+      }
+    },
+    "codegen": {
+      "executor": "@nx/playwright:codegen",
+      "options": {
+        "config": "apps/app-e2e/playwright.config.ts"
+      }
+    },
+    "test": {
+      "executor": "@nx/playwright:test",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/app-e2e"],
+      "options": {
+        "config": "apps/app-e2e/playwright.config.ts"
+      }
+    }
+  },
+  "tags": [],
+  "implicitDependencies": ["app"]
+}

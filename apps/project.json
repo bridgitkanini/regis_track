@@ -15,6 +15,44 @@
       "executor": "@nx/vite:build",
       "options": {
         "configFile": "apps/vite.config.ts"
+      },
+      "outputs": ["{options.outputPath}"],
+      "configurations": {
+        "production": {
+          "mode": "production"
+        },
+        "development": {
+          "mode": "development"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "../../../coverage/apps/app"
+      },
+      "configurations": {
+        "ci": {
+          "watch": false,
+          "coverage": {
+            "reporter": ["text", "json", "html"],
+            "reportsDirectory": "../../../coverage/apps/app/ci"
+          }
+        },
+        "ui": {
+          "watch": true,
+          "ui": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/app/**/*.{ts,tsx,js,jsx}"]
       }
     }
   },
