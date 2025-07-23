@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import './globals.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -8,6 +9,7 @@ import {
   Outlet,
 } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -32,53 +34,81 @@ const queryClient = new QueryClient({
   },
 });
 
+// Add theme class to the document element
+const ThemeWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+
+    // Remove any existing theme classes
+    root.classList.remove('light', 'dark');
+
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+        .matches
+        ? 'dark'
+        : 'light';
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(theme);
+    }
+  }, [theme]);
+
+  return <>{children}</>;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/register" element={<RegisterForm />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+      <ThemeProvider>
+        <ThemeWrapper>
+          <AuthProvider>
+            <Router>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<LoginForm />} />
+                <Route path="/register" element={<RegisterForm />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+                {/* Protected routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
 
-              {/* Member management routes */}
-              <Route
-                path="members"
-                element={
-                  <ProtectedRoute requiredRole={['admin', 'manager']}>
-                    <MemberLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<MembersPage />} />
-                <Route path="new" element={<MemberForm />} />
-                <Route path=":id" element={<MemberDetail />} />
-                <Route path=":id/edit" element={<MemberForm />} />
-              </Route>
+                  {/* Member management routes */}
+                  <Route
+                    path="members"
+                    element={
+                      <ProtectedRoute requiredRole={['admin', 'manager']}>
+                        <MemberLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<MembersPage />} />
+                    <Route path="new" element={<MemberForm />} />
+                    <Route path=":id" element={<MemberDetail />} />
+                    <Route path=":id/edit" element={<MemberForm />} />
+                  </Route>
 
-              <Route path="profile" element={<Profile />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
 
-            {/* 404 - Catch all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+                {/* 404 - Catch all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ThemeWrapper>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
