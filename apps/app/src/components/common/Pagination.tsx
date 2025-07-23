@@ -1,23 +1,56 @@
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+} from '@heroicons/react/20/solid';
+import { cn } from '../../lib/utils';
+import { Button } from './Button';
 
 interface PaginationProps {
+  /** Current page number (1-based) */
   currentPage: number;
+  /** Total number of pages */
   totalPages: number;
+  /** Callback when page changes */
   onPageChange: (page: number) => void;
+  /** Maximum number of page buttons to show (excluding ellipsis and nav buttons) */
   maxVisiblePages?: number;
+  /** Custom class name for the container */
+  className?: string;
+  /** Show page size selector */
+  showPageSizeSelector?: boolean;
+  /** Available page sizes */
+  pageSizes?: number[];
+  /** Current page size */
+  pageSize?: number;
+  /** Callback when page size changes */
+  onPageSizeChange?: (size: number) => void;
+  /** Show total items count */
+  showTotal?: boolean;
+  /** Total number of items */
+  totalItems?: number;
 }
 
-export const Pagination = ({
+export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
   maxVisiblePages = 5,
-}: PaginationProps) => {
-  if (totalPages <= 1) {
+  className,
+  showPageSizeSelector = false,
+  pageSizes = [10, 20, 50, 100],
+  pageSize,
+  onPageSizeChange,
+  showTotal = false,
+  totalItems,
+}: PaginationProps) {
+  if (totalPages <= 1 && !showPageSizeSelector) {
     return null;
   }
 
   const getPageNumbers = () => {
+    if (totalPages <= 1) return [];
+
     const pages: (number | '...')[] = [];
     const halfVisible = Math.floor(maxVisiblePages / 2);
     let startPage = Math.max(1, currentPage - halfVisible);
@@ -49,63 +82,105 @@ export const Pagination = ({
   };
 
   const pages = getPageNumbers();
+  const canPrevious = currentPage > 1;
+  const canNext = currentPage < totalPages;
 
   return (
-    <nav
-      className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
-      aria-label="Pagination"
+    <div
+      className={cn(
+        'flex flex-col sm:flex-row items-center justify-between gap-4',
+        className
+      )}
     >
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`relative inline-flex items-center rounded-l-md px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-          currentPage === 1
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-500 hover:bg-gray-50'
-        }`}
-      >
-        <span className="sr-only">Previous</span>
-        <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-      </button>
-
-      {pages.map((page, index) =>
-        page === '...' ? (
-          <span
-            key={`ellipsis-${index}`}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-          >
-            ...
-          </span>
-        ) : (
-          <button
-            key={page}
-            onClick={() => onPageChange(page as number)}
-            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-              currentPage === page
-                ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-            }`}
-            aria-current={currentPage === page ? 'page' : undefined}
-          >
-            {page}
-          </button>
-        )
+      {showTotal && totalItems !== undefined && (
+        <div className="text-sm text-muted-foreground">
+          Showing{' '}
+          <span className="font-medium">
+            {(currentPage - 1) * (pageSize || 0) + 1}
+          </span>{' '}
+          to{' '}
+          <span className="font-medium">
+            {Math.min(currentPage * (pageSize || 0), totalItems)}
+          </span>{' '}
+          of <span className="font-medium">{totalItems}</span> results
+        </div>
       )}
 
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`relative inline-flex items-center rounded-r-md px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-          currentPage === totalPages
-            ? 'text-gray-300 cursor-not-allowed'
-            : 'text-gray-500 hover:bg-gray-50'
-        }`}
-      >
-        <span className="sr-only">Next</span>
-        <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-      </button>
-    </nav>
+      <div className="flex-1 flex items-center justify-center sm:justify-end gap-1">
+        <nav className="flex items-center gap-1" aria-label="Pagination">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={!canPrevious}
+            aria-label="Previous page"
+            className={!canPrevious ? 'opacity-50' : ''}
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+            <span className="sr-only">Previous</span>
+          </Button>
+
+          {pages.map((page, index) =>
+            page === '...' ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="px-3 py-1.5 text-sm font-medium text-foreground/50"
+              >
+                <EllipsisHorizontalIcon className="h-4 w-4" />
+                <span className="sr-only">More pages</span>
+              </span>
+            ) : (
+              <Button
+                key={page}
+                variant={page === currentPage ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                aria-current={page === currentPage ? 'page' : undefined}
+                className={cn(
+                  'min-w-[2rem]',
+                  page === currentPage ? 'font-semibold' : ''
+                )}
+              >
+                {page}
+              </Button>
+            )
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={!canNext}
+            aria-label="Next page"
+            className={!canNext ? 'opacity-50' : ''}
+          >
+            <ChevronRightIcon className="h-4 w-4" />
+            <span className="sr-only">Next</span>
+          </Button>
+        </nav>
+
+        {showPageSizeSelector && onPageSizeChange && (
+          <div className="ml-4 flex items-center text-sm">
+            <label htmlFor="page-size" className="mr-2 text-muted-foreground">
+              Rows per page:
+            </label>
+            <select
+              id="page-size"
+              className="bg-background border rounded-md px-2 py-1 text-sm focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            >
+              {pageSizes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+    </div>
   );
-};
+}
 
 export default Pagination;

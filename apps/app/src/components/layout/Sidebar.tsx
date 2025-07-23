@@ -2,14 +2,22 @@ import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Disclosure } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { cn } from '../../lib/utils';
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  children?: NavItem[];
+}
+
+const navigation: NavItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard',
     icon: (
       <svg
-        className="h-6 w-6"
+        className="h-5 w-5"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -23,14 +31,13 @@ const navigation = [
         />
       </svg>
     ),
-    current: true,
   },
   {
     name: 'Members',
     href: '/members',
     icon: (
       <svg
-        className="h-6 w-6"
+        className="h-5 w-5"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -44,14 +51,13 @@ const navigation = [
         />
       </svg>
     ),
-    current: false,
   },
   {
     name: 'Reports',
-    href: '#',
+    href: '/reports',
     icon: (
       <svg
-        className="h-6 w-6"
+        className="h-5 w-5"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -66,9 +72,9 @@ const navigation = [
       </svg>
     ),
     children: [
-      { name: 'Monthly', href: '#', current: false },
-      { name: 'Quarterly', href: '#', current: false },
-      { name: 'Yearly', href: '#', current: false },
+      { name: 'Monthly', href: '/reports/monthly', icon: null },
+      { name: 'Quarterly', href: '/reports/quarterly', icon: null },
+      { name: 'Yearly', href: '/reports/yearly', icon: null },
     ],
   },
   {
@@ -76,7 +82,7 @@ const navigation = [
     href: '/settings',
     icon: (
       <svg
-        className="h-6 w-6"
+        className="h-5 w-5"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -96,103 +102,124 @@ const navigation = [
         />
       </svg>
     ),
-    current: false,
   },
 ];
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
 
 export const Sidebar = () => {
   const location = useLocation();
 
   const isActive = (href: string) => {
-    return location.pathname === href;
+    return (
+      location.pathname === href || location.pathname.startsWith(`${href}/`)
+    );
   };
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-      <div className="flex flex-col flex-grow border-r border-gray-200 pt-5 bg-white overflow-y-auto">
-        <div className="flex-grow flex flex-col">
-          <nav className="flex-1 px-2 pb-4 space-y-1">
+    <div className="hidden md:flex md:flex-shrink-0">
+      <div className="flex flex-col w-64 border-r border-border bg-card">
+        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+          <div className="flex items-center flex-shrink-0 px-4">
+            <h1 className="text-xl font-bold text-primary">RegisTrack</h1>
+          </div>
+          <nav className="mt-5 flex-1 px-2 space-y-1">
             {navigation.map((item) =>
               !item.children ? (
-                <div key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={classNames(
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors',
+                    isActive(item.href)
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'mr-3 flex-shrink-0 h-5 w-5',
                       isActive(item.href)
-                        ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                      'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
+                        ? 'text-primary'
+                        : 'text-muted-foreground group-hover:text-accent-foreground'
                     )}
+                    aria-hidden="true"
                   >
-                    <span
-                      className={classNames(
-                        isActive(item.href)
-                          ? 'text-indigo-500'
-                          : 'text-gray-400 group-hover:text-gray-500',
-                        'mr-3 flex-shrink-0 h-6 w-6'
-                      )}
-                      aria-hidden="true"
-                    >
-                      {item.icon}
-                    </span>
-                    {item.name}
-                  </Link>
-                </div>
+                    {item.icon}
+                  </span>
+                  {item.name}
+                </Link>
               ) : (
                 <Disclosure as="div" key={item.name} className="space-y-1">
-                  {({ open }) => (
-                    <>
-                      <Disclosure.Button
-                        className={classNames(
-                          isActive(item.href)
-                            ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                          'group w-full flex items-center pl-2 pr-1 py-2 text-left text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500'
-                        )}
-                      >
-                        <span
-                          className={classNames(
-                            isActive(item.href)
-                              ? 'text-indigo-500'
-                              : 'text-gray-400 group-hover:text-gray-500',
-                            'mr-3 flex-shrink-0 h-6 w-6'
+                  {({ open }) => {
+                    const isItemActive =
+                      isActive(item.href) ||
+                      item.children?.some((child) => isActive(child.href));
+                    return (
+                      <>
+                        <Disclosure.Button
+                          className={cn(
+                            'group w-full flex items-center pl-2 pr-1 py-2 text-left text-sm font-medium rounded-md transition-colors',
+                            isItemActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                            'focus:outline-none focus:ring-2 focus:ring-primary/50'
                           )}
                         >
-                          {item.icon}
-                        </span>
-                        <span className="flex-1">{item.name}</span>
-                        <svg
-                          className={classNames(
-                            open ? 'text-gray-400 rotate-90' : 'text-gray-300',
-                            'ml-3 h-5 w-5 transform group-hover:text-gray-400 transition-colors ease-in-out duration-150'
-                          )}
-                          viewBox="0 0 20 20"
-                          aria-hidden="true"
-                        >
-                          <path d="M6 6L14 10L6 14V6Z" fill="currentColor" />
-                        </svg>
-                      </Disclosure.Button>
-                      <Disclosure.Panel className="space-y-1">
-                        {item.children.map((subItem) => (
-                          <Link
-                            key={subItem.name}
-                            to={subItem.href}
-                            className="group w-full flex items-center pl-11 pr-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
+                          <span
+                            className={cn(
+                              'mr-3 flex-shrink-0 h-5 w-5',
+                              isItemActive
+                                ? 'text-primary'
+                                : 'text-muted-foreground group-hover:text-accent-foreground'
+                            )}
                           >
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </Disclosure.Panel>
-                    </>
-                  )}
+                            {item.icon}
+                          </span>
+                          <span className="flex-1 text-left">{item.name}</span>
+                          <ChevronDownIcon
+                            className={cn(
+                              'ml-3 h-5 w-5 transform transition-transform duration-200',
+                              open ? 'rotate-180' : 'rotate-0',
+                              isItemActive
+                                ? 'text-primary/70'
+                                : 'text-muted-foreground/50 group-hover:text-muted-foreground'
+                            )}
+                            aria-hidden="true"
+                          />
+                        </Disclosure.Button>
+                        <Disclosure.Panel className="pl-4 space-y-1">
+                          {item.children.map((subItem) => (
+                            <Link
+                              key={subItem.name}
+                              to={subItem.href}
+                              className={cn(
+                                'group w-full flex items-center pl-9 pr-2 py-2 text-sm font-medium rounded-md transition-colors',
+                                isActive(subItem.href)
+                                  ? 'bg-primary/5 text-primary'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                              )}
+                            >
+                              {subItem.name}
+                            </Link>
+                          ))}
+                        </Disclosure.Panel>
+                      </>
+                    );
+                  }}
                 </Disclosure>
               )
             )}
           </nav>
+        </div>
+        <div className="flex-shrink-0 flex border-t border-border p-4">
+          <div className="flex items-center">
+            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+              U
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-foreground">User Name</p>
+              <p className="text-xs text-muted-foreground">Admin</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

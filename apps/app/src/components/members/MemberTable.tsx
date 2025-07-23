@@ -1,214 +1,232 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpIcon, ArrowDownIcon, PlusIcon } from '@heroicons/react/20/solid';
+import {
+  ArrowUpIcon,
+  ArrowDownIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+} from '@heroicons/react/20/solid';
 import { Badge } from '../common/Badge';
 import { format } from 'date-fns';
-import { Member } from '../../types/member';
+import { Member, MemberStatus } from '../../types/member';
+import { cn } from '../../lib/utils';
+import { Button } from '../common/Button';
 
-type SortableField = keyof Pick<Member, 'firstName' | 'email' | 'status' | 'createdAt'> | 'role.name';
-
-const isSortableField = (field: string): field is SortableField => {
-  return ['firstName', 'email', 'status', 'createdAt', 'role.name'].includes(field);
-};
+type SortableField =
+  | keyof Pick<Member, 'firstName' | 'email' | 'status' | 'createdAt'>
+  | 'role.name';
 
 interface MemberTableProps {
   members: Member[];
-  sortField: keyof Pick<Member, 'firstName' | 'email' | 'status' | 'createdAt' | 'role'> | 'role.name';
+  sortField:
+    | keyof Pick<
+        Member,
+        'firstName' | 'email' | 'status' | 'createdAt' | 'role'
+      >
+    | 'role.name';
   sortOrder: 'asc' | 'desc';
   onSort: (field: keyof Member | 'role.name') => void;
+  onEdit?: (member: Member) => void;
+  onDelete?: (member: Member) => void;
+  isLoading?: boolean;
+  className?: string;
 }
 
-const statusColors = {
-  active: 'green',
-  inactive: 'red',
-  pending: 'yellow',
-} as const;
+const statusVariantMap: Record<
+  MemberStatus,
+  'success' | 'warning' | 'destructive'
+> = {
+  active: 'success',
+  pending: 'warning',
+  inactive: 'destructive',
+};
 
 export const MemberTable = ({
   members,
   sortField,
   sortOrder,
   onSort,
+  onEdit,
+  onDelete,
+  isLoading = false,
+  className,
 }: MemberTableProps) => {
-  const renderSortIcon = (field: string) => {
-    if (sortField !== field) {
-      return (
-        <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
-          <ArrowUpIcon className="h-4 w-4" aria-hidden="true" />
-        </span>
-      );
-    }
-
-    return sortOrder === 'asc' ? (
-      <span className="ml-2 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300">
-        <ArrowUpIcon className="h-4 w-4" aria-hidden="true" />
-      </span>
-    ) : (
-      <span className="ml-2 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300">
-        <ArrowDownIcon className="h-4 w-4" aria-hidden="true" />
-      </span>
-    );
-  };
-
   const handleSort = (field: string) => {
     if (isSortableField(field)) {
       onSort(field);
     }
   };
 
+  const isSortableField = (field: string): field is SortableField => {
+    return ['firstName', 'email', 'status', 'createdAt', 'role.name'].includes(
+      field
+    );
+  };
+
+  const renderSortIcon = (field: string) => {
+    if (!isSortableField(field)) return null;
+
+    const isActive = sortField === field;
+    const Icon = sortOrder === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'ml-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100',
+          isActive ? 'opacity-100' : ''
+        )}
+        onClick={() => handleSort(field)}
+        aria-label={isActive ? `Sorted ${sortOrder}ending` : 'Sort'}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </Button>
+    );
+  };
+
+  const renderHeaderCell = (field: string, label: string, className = '') => (
+    <th
+      scope="col"
+      className={cn(
+        'px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider group',
+        isSortableField(field) ? 'cursor-pointer hover:text-foreground' : '',
+        className
+      )}
+      onClick={() => isSortableField(field) && handleSort(field)}
+    >
+      <div className="flex items-center">
+        {label}
+        {isSortableField(field) && renderSortIcon(field)}
+      </div>
+    </th>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader />
+      </div>
+    );
+  }
+
   if (members.length === 0) {
     return (
-      <div className="px-6 py-14 text-center text-sm sm:px-14">
-        <svg
-          className="mx-auto h-6 w-6 text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        <h3 className="mt-4 font-medium text-gray-900">No members found</h3>
-        <p className="mt-1 text-gray-500">
-          Get started by adding a new member.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/members/new"
-            className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            New Member
-          </Link>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No members found</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <div
-                className="group inline-flex cursor-pointer"
-                onClick={() => handleSort('firstName')}
-              >
-                Name
-                {renderSortIcon('firstName')}
-              </div>
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <div
-                className="group inline-flex cursor-pointer"
-                onClick={() => handleSort('email')}
-              >
-                Email
-                {renderSortIcon('email')}
-              </div>
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <div
-                className="group inline-flex cursor-pointer"
-                onClick={() => handleSort('role')}
-              >
-                Role
-                {renderSortIcon('role')}
-              </div>
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <div
-                className="group inline-flex cursor-pointer"
-                onClick={() => handleSort('status')}
-              >
-                Status
-                {renderSortIcon('status')}
-              </div>
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              <div
-                className="group inline-flex cursor-pointer"
-                onClick={() => handleSort('createdAt')}
-              >
-                Joined
-                {renderSortIcon('createdAt')}
-              </div>
-            </th>
-            <th scope="col" className="relative px-6 py-3">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {members.map((member) => (
-            <tr key={member.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <span className="text-indigo-600 font-medium">
-                      {member.firstName.charAt(0)}
-                      {member.lastName.charAt(0)}
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {member.firstName} {member.lastName}
-                    </div>
-                    <div className="text-sm text-gray-500">{member.phone}</div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{member.email}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {member.role.name}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <Badge color={statusColors[member.status]}>
-                  {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
-                </Badge>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(member.createdAt), 'MMM d, yyyy')}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <Link
-                  to={`/members/${member.id}`}
-                  className="text-indigo-600 hover:text-indigo-900 mr-4"
-                >
-                  Edit
-                </Link>
-                <button className="text-red-600 hover:text-red-900">
-                  Delete
-                </button>
-              </td>
+    <div
+      className={cn(
+        'overflow-hidden shadow ring-1 ring-black/5 rounded-lg',
+        className
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted/50">
+            <tr>
+              {renderHeaderCell('firstName', 'Name')}
+              {renderHeaderCell('email', 'Email')}
+              {renderHeaderCell('role.name', 'Role')}
+              {renderHeaderCell('status', 'Status', 'hidden sm:table-cell')}
+              {renderHeaderCell('createdAt', 'Joined', 'hidden md:table-cell')}
+              <th scope="col" className="relative px-4 py-3 w-32">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-border bg-background">
+            {members.map((member) => (
+              <tr
+                key={member._id}
+                className="hover:bg-muted/50 transition-colors"
+              >
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 flex-shrink-0 rounded-full bg-muted overflow-hidden">
+                      {member.profilePicture ? (
+                        <img
+                          className="h-full w-full object-cover"
+                          src={member.profilePicture}
+                          alt={`${member.firstName} ${member.lastName}`}
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
+                          {member.firstName?.[0]?.toUpperCase()}
+                          {member.lastName?.[0]?.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      <div className="font-medium text-foreground">
+                        {member.firstName} {member.lastName}
+                      </div>
+                      <div className="text-sm text-muted-foreground sm:hidden">
+                        {member.email}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-4 hidden sm:table-cell">
+                  <div className="text-foreground">{member.email}</div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-foreground">
+                    {member.role?.name || '—'}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-4 hidden sm:table-cell">
+                  <Badge variant={statusVariantMap[member.status]}>
+                    {member.status.charAt(0).toUpperCase() +
+                      member.status.slice(1)}
+                  </Badge>
+                </td>
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-muted-foreground hidden md:table-cell">
+                  {member.createdAt
+                    ? format(new Date(member.createdAt), 'MMM d, yyyy')
+                    : '—'}
+                </td>
+                <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link to={`/members/${member._id}`}>
+                        <EyeIcon className="h-4 w-4" />
+                        <span className="sr-only">View</span>
+                      </Link>
+                    </Button>
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(member)}
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(member)}
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

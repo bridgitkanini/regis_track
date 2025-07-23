@@ -1,8 +1,9 @@
 import { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { User } from '../../types';
+import { cn } from '../../lib/utils';
 
 interface NavbarProps {
   user: User;
@@ -10,55 +11,59 @@ interface NavbarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', current: true },
-  { name: 'Members', href: '/members', current: false },
-  { name: 'Reports', href: '#', current: false },
+  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Members', href: '/members' },
+  { name: 'Reports', href: '/reports' },
 ];
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
 export const Navbar = ({ user, onLogout }: NavbarProps) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await onLogout();
   };
 
   return (
-    <Disclosure as="nav" className="bg-white shadow-sm">
+    <Disclosure as="nav" className="bg-card shadow-sm border-b">
       {({ open }) => (
         <>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="container">
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex flex-shrink items-center">
-                  <Link to="/" className="text-xl font-bold text-indigo-600">
+                  <Link
+                    to="/"
+                    className="text-xl font-bold text-primary hover:text-primary/90 transition-colors"
+                  >
                     RegisTrack
                   </Link>
                 </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={classNames(
-                        item.current
-                          ? 'border-indigo-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-                        'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
-                      )}
-                      aria-current={item.current ? 'page' : undefined}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-2">
+                  {navigation.map((item) => {
+                    const isActive = currentPath.startsWith(item.href);
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={cn(
+                          'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                          isActive
+                            ? 'bg-primary/10 text-primary font-semibold'
+                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:items-center">
                 <button
                   type="button"
-                  className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="relative rounded-full p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <span className="sr-only">View notifications</span>
                   <BellIcon className="h-6 w-6" aria-hidden="true" />
@@ -67,13 +72,19 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
-                    <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
-                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-indigo-600 font-medium">
-                          {user?.username?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      {user.avatar ? (
+                        <img
+                          className="h-8 w-8 rounded-full"
+                          src={user.avatar}
+                          alt={user.username}
+                        />
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </Menu.Button>
                   </div>
                   <Transition
@@ -85,14 +96,14 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-popover py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <Menu.Item>
                         {({ active }) => (
                           <Link
                             to="/profile"
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
+                            className={cn(
+                              active ? 'bg-accent' : '',
+                              'block px-4 py-2 text-sm text-foreground'
                             )}
                           >
                             Your Profile
@@ -103,9 +114,9 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                         {({ active }) => (
                           <Link
                             to="/settings"
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
+                            className={cn(
+                              active ? 'bg-accent' : '',
+                              'block px-4 py-2 text-sm text-foreground'
                             )}
                           >
                             Settings
@@ -116,9 +127,9 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                         {({ active }) => (
                           <button
                             onClick={handleLogout}
-                            className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block w-full text-left px-4 py-2 text-sm text-gray-700'
+                            className={cn(
+                              active ? 'bg-accent' : '',
+                              'block w-full text-left px-4 py-2 text-sm text-foreground'
                             )}
                           >
                             Sign out
@@ -131,7 +142,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
               </div>
               <div className="-mr-2 flex items-center sm:hidden">
                 {/* Mobile menu button */}
-                <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                   <span className="sr-only">Open main menu</span>
                   {open ? (
                     <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -144,44 +155,52 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
           </div>
 
           <Disclosure.Panel className="sm:hidden">
-            <div className="space-y-1 pt-2 pb-3">
-              {navigation.map((item) => (
-                <Disclosure.Button
-                  key={item.name}
-                  as="a"
-                  href={item.href}
-                  className={classNames(
-                    item.current
-                      ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                      : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800',
-                    'block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
-                  )}
-                  aria-current={item.current ? 'page' : undefined}
-                >
-                  {item.name}
-                </Disclosure.Button>
-              ))}
+            <div className="space-y-1 pb-3 pt-2">
+              {navigation.map((item) => {
+                const isActive = currentPath === item.href;
+                return (
+                  <Disclosure.Button
+                    key={item.name}
+                    as={Link}
+                    to={item.href}
+                    className={cn(
+                      'block border-l-4 py-2 pl-3 pr-4 text-base font-medium',
+                      isActive
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-transparent text-muted-foreground hover:border-accent hover:bg-accent hover:text-accent-foreground'
+                    )}
+                  >
+                    {item.name}
+                  </Disclosure.Button>
+                );
+              })}
             </div>
-            <div className="border-t border-gray-200 pt-4 pb-3">
+            <div className="border-t border-border pb-3 pt-4">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <span className="text-indigo-600 font-medium">
-                      {user?.username?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  {user.avatar ? (
+                    <img
+                      className="h-10 w-10 rounded-full"
+                      src={user.avatar}
+                      alt={user.username}
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">
-                    {user?.username}
+                  <div className="text-base font-medium text-foreground">
+                    {user.username}
                   </div>
-                  <div className="text-sm font-medium text-gray-500">
-                    {user?.email}
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {user.email}
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="ml-auto flex-shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="ml-auto flex-shrink-0 rounded-full p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <span className="sr-only">View notifications</span>
                   <BellIcon className="h-6 w-6" aria-hidden="true" />
@@ -189,23 +208,23 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
               </div>
               <div className="mt-3 space-y-1">
                 <Disclosure.Button
-                  as="a"
-                  href="/profile"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  as={Link}
+                  to="/profile"
+                  className="block px-4 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   Your Profile
                 </Disclosure.Button>
                 <Disclosure.Button
-                  as="a"
-                  href="/settings"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  as={Link}
+                  to="/settings"
+                  className="block px-4 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   Settings
                 </Disclosure.Button>
                 <Disclosure.Button
                   as="button"
                   onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  className="block w-full px-4 py-2 text-left text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   Sign out
                 </Disclosure.Button>

@@ -1,10 +1,17 @@
 import { useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '../../lib/utils';
+import { Button } from '../common/Button';
+import { Badge } from '../common/Badge';
 import {
-  ChevronUpIcon,
-  ChevronDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/20/solid';
 
 type SortDirection = 'asc' | 'desc';
@@ -34,87 +41,37 @@ interface RecentActivityProps {
   onPageChange: (page: number) => void;
   onSort: (key: string) => void;
   sortConfig: SortConfig;
+  className?: string;
 }
 
 const getActionIcon = (action: string) => {
-  switch (action.toLowerCase()) {
-    case 'create':
-      return (
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
-          <svg
-            className="w-4 h-4 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
-        </div>
-      );
-    case 'update':
-      return (
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
-          <svg
-            className="w-4 h-4 text-blue-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-        </div>
-      );
-    case 'delete':
-      return (
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
-          <svg
-            className="w-4 h-4 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-        </div>
-      );
-    default:
-      return (
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
-          <svg
-            className="w-4 h-4 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-      );
-  }
+  const iconClass = 'h-4 w-4';
+
+  const icons = {
+    create: {
+      icon: <PlusIcon className={iconClass} />,
+      variant: 'success' as const,
+      label: 'Created',
+    },
+    update: {
+      icon: <PencilSquareIcon className={iconClass} />,
+      variant: 'info' as const,
+      label: 'Updated',
+    },
+    delete: {
+      icon: <TrashIcon className={iconClass} />,
+      variant: 'error' as const,
+      label: 'Deleted',
+    },
+    default: {
+      icon: <InformationCircleIcon className={iconClass} />,
+      variant: 'secondary' as const,
+      label: 'Activity',
+    },
+  };
+
+  const actionKey = action.toLowerCase() as keyof typeof icons;
+  return icons[actionKey] || icons.default;
 };
 
 export const RecentActivity = ({
@@ -125,6 +82,7 @@ export const RecentActivity = ({
   onPageChange,
   onSort,
   sortConfig,
+  className,
 }: RecentActivityProps) => {
   // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -185,168 +143,186 @@ export const RecentActivity = ({
 
   if (activities.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-500">
+      <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
         No recent activity to display.
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-      <div className="overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+    <div
+      className={cn(
+        'overflow-hidden rounded-lg border bg-card shadow-sm',
+        className
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-muted/50">
             <tr>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => handleSort('action')}
+                className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+              >
+                Action
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
+                onClick={() => handleSort('collection')}
               >
                 <div className="flex items-center">
-                  Action
-                  {sortConfig.key === 'action' &&
-                    (sortConfig.direction === 'asc' ? (
-                      <ChevronUpIcon className="ml-1 h-4 w-4" />
-                    ) : (
-                      <ChevronDownIcon className="ml-1 h-4 w-4" />
-                    ))}
+                  Collection
+                  {sortConfig.key === 'collection' && (
+                    <span className="ml-1">
+                      {sortConfig.direction === 'asc' ? (
+                        <ArrowUpIcon className="h-3 w-3" />
+                      ) : (
+                        <ArrowDownIcon className="h-3 w-3" />
+                      )}
+                    </span>
+                  )}
                 </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
               >
-                Details
+                Document
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+              >
+                User
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort('timestamp')}
               >
                 <div className="flex items-center">
                   When
-                  {sortConfig.key === 'timestamp' &&
-                    (sortConfig.direction === 'asc' ? (
-                      <ChevronUpIcon className="ml-1 h-4 w-4" />
-                    ) : (
-                      <ChevronDownIcon className="ml-1 h-4 w-4" />
-                    ))}
+                  {sortConfig.key === 'timestamp' && (
+                    <span className="ml-1">
+                      {sortConfig.direction === 'asc' ? (
+                        <ArrowUpIcon className="h-3 w-3" />
+                      ) : (
+                        <ArrowDownIcon className="h-3 w-3" />
+                      )}
+                    </span>
+                  )}
                 </div>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {activities.map((activity) => (
-              <tr key={activity.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      {getActionIcon(activity.action)}
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 capitalize">
-                        {activity.action}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {activity.collection}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">
-                    <span className="font-medium">
-                      {activity.user.username}
-                    </span>{' '}
-                    {activity.action.toLowerCase()}
-                    {activity.action.toLowerCase().endsWith('e')
-                      ? 'd'
-                      : 'ed'} a {activity.collection.toLowerCase()}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDistanceToNow(new Date(activity.timestamp), {
-                    addSuffix: true,
-                  })}
-                </td>
-              </tr>
-            ))}
+          <tbody className="divide-y divide-border">
+            {activities.map((activity) => {
+              const action = getActionIcon(activity.action);
+              return (
+                <tr key={activity.id} className="hover:bg-muted/20">
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <Badge variant={action.variant} className="gap-1">
+                      {action.icon}
+                      {action.label}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-foreground">
+                    {activity.collection}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground font-mono">
+                    {activity.documentId}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-foreground">
+                    {activity.user.username}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
+                    {formatDistanceToNow(new Date(activity.timestamp), {
+                      addSuffix: true,
+                    })}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() =>
-                handlePageChange(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
+      <div className="flex items-center justify-between border-t border-border px-4 py-3 sm:px-6">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Showing <span className="font-medium">{startItem}</span> to{' '}
+              <span className="font-medium">{endItem}</span> of{' '}
+              <span className="font-medium">{totalItems}</span> results
+            </p>
           </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{startItem}</span> to{' '}
-                <span className="font-medium">{endItem}</span> of{' '}
-                <span className="font-medium">{totalItems}</span> results
-              </p>
-            </div>
-            <div>
-              <nav
-                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                aria-label="Pagination"
+          <div>
+            <nav
+              className="inline-flex rounded-md shadow-sm -space-x-px"
+              aria-label="Pagination"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-r-none"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
               >
-                <button
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
+                <span className="sr-only">Previous</span>
+                <ChevronLeftIcon className="h-4 w-4" />
+              </Button>
 
-                {getPageNumbers().map((pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      currentPage === pageNumber
-                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() =>
-                    handlePageChange(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              {getPageNumbers().map((page) => (
+                <Button
+                  key={page}
+                  variant={page === currentPage ? 'default' : 'ghost'}
+                  size="sm"
+                  className={cn(
+                    'rounded-none border-l border-border',
+                    page === currentPage
+                      ? 'z-10 bg-primary text-primary-foreground'
+                      : ''
+                  )}
+                  onClick={() => handlePageChange(page)}
                 >
-                  <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
+                  {page}
+                </Button>
+              ))}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-l-none"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <span className="sr-only">Next</span>
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+            </nav>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

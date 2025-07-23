@@ -1,5 +1,12 @@
+import './globals.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
@@ -35,7 +42,7 @@ function App() {
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            
+
             {/* Protected routes */}
             <Route
               path="/"
@@ -47,23 +54,26 @@ function App() {
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              
+
               {/* Member management routes */}
-              <Route path="members" element={
-                <ProtectedRoute requiredRole={['admin', 'manager']}>
-                  <MemberLayout />
-                </ProtectedRoute>
-              }>
+              <Route
+                path="members"
+                element={
+                  <ProtectedRoute requiredRole={['admin', 'manager']}>
+                    <MemberLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<MembersPage />} />
                 <Route path="new" element={<MemberForm />} />
                 <Route path=":id" element={<MemberDetail />} />
                 <Route path=":id/edit" element={<MemberForm />} />
               </Route>
-              
+
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Settings />} />
             </Route>
-            
+
             {/* 404 - Catch all */}
             <Route path="*" element={<NotFound />} />
           </Routes>

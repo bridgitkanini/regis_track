@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '../common/Button';
-import { Loader } from '../common/Loader';
-import { toast } from 'react-hot-toast';
-import apiClient from '../../lib/api/client';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { Loader } from '../common/Loader';
+import { Button } from '../common/Button';
+import { Input } from '../common/Input';
+import { Select } from '../common/Select';
+import { Textarea } from '../common/Textarea';
+import { DatePicker } from '../common/DatePicker';
+import { FileUpload } from '../common/FileUpload';
+import { cn } from '../../lib/utils';
+import apiClient from '../../lib/api/client';
 import { Role } from '../../types/role';
 
 // Define the API response type
@@ -37,95 +43,53 @@ type FormValues = {
   profilePicture?: FileList;
 };
 
-// Yup schema type for the form validation
-
-type YupSchemaType = yup.ObjectSchema<{
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  dateOfBirth: Date | null;
-  gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
-  status: 'active' | 'inactive' | 'pending';
-  roleId: string;
-  notes?: string;
-  profilePicture?: FileList;
-}, yup.AnyObject, {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string | undefined;
-  address?: string | undefined;
-  city?: string | undefined;
-  state?: string | undefined;
-  postalCode?: string | undefined;
-  country?: string | undefined;
-  dateOfBirth: Date | null;
-  gender?: "male" | "female" | "other" | "prefer-not-to-say" | undefined;
-  status: "active" | "inactive" | "pending";
-  roleId: string;
-  notes?: string | undefined;
-  profilePicture?: FileList | undefined;
-}, "">;
-
 // Define the structure of the error response from the API
 interface ErrorResponse {
   message?: string;
   error?: string;
   statusCode?: number;
+  [key: string]: unknown;
 }
 
-// Type guard to check if the error is an Axios error
-const isAxiosError = (error: unknown): error is { response?: { data?: unknown } } => {
-  return (error as { isAxiosError?: boolean })?.isAxiosError === true;
+// Type guard for Axios error
+const isAxiosError = (
+  error: unknown
+): error is { response?: { data?: unknown } } => {
+  return typeof error === 'object' && error !== null && 'response' in error;
 };
 
 // Helper function to handle API errors
 const handleApiError = (error: unknown, defaultMessage: string): string => {
-  // Handle Axios errors
   if (isAxiosError(error)) {
     const responseData = error.response?.data as ErrorResponse | undefined;
-    return responseData?.message || responseData?.error || String(error) || defaultMessage;
+    return responseData?.message || responseData?.error || defaultMessage;
   }
-  
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  // Handle string errors
-  if (typeof error === 'string') {
-    return error;
-  }
-  
-  // Fallback to default message
   return defaultMessage;
 };
 
 // Convert FormValues to FormData for API submission
 const toMemberFormData = (values: FormValues): FormData => {
   const formData = new FormData();
-  
-  // Add all fields to form data
+
+  // Append all form fields to FormData
   Object.entries(values).forEach(([key, value]) => {
-    if (value === undefined || value === null) {
-      return; // Skip undefined and null values
-    }
-    
-    if (key === 'profilePicture' && value instanceof FileList && value.length > 0) {
-      formData.append(key, value[0]);
-    } else if (key === 'dateOfBirth' && value instanceof Date) {
-      formData.append(key, value.toISOString().split('T')[0]);
-    } else {
-      formData.append(key, String(value));
+    if (value !== undefined && value !== null) {
+      if (
+        key === 'profilePicture' &&
+        value instanceof FileList &&
+        value.length > 0
+      ) {
+        formData.append(key, value[0]);
+      } else if (value instanceof Date) {
+        formData.append(key, value.toISOString().split('T')[0]);
+      } else if (typeof value === 'object') {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, String(value));
+      }
     }
   });
-  
+
   return formData;
 };
 
@@ -133,20 +97,48 @@ const toMemberFormData = (values: FormValues): FormData => {
 const memberSchema = yup.object({
   firstName: yup.string().required('First name is required'),
   lastName: yup.string().required('Last name is required'),
-  email: yup.string().email('Invalid email').required('Email is required'),
-  phone: yup.string(),
-  address: yup.string(),
-  city: yup.string(),
-  state: yup.string(),
-  postalCode: yup.string(),
-  country: yup.string(),
-  dateOfBirth: yup.date().nullable(),
-  gender: yup.string().oneOf(['male', 'female', 'other', 'prefer-not-to-say']),
-  status: yup.string().oneOf(['active', 'inactive', 'pending']).required('Status is required'),
+  email: yup
+    .string()
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  phone: yup
+    .string()
+    .matches(
+      /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/,
+      'Please enter a valid phone number'
+    )
+    .optional(),
+  address: yup.string().optional(),
+  city: yup.string().optional(),
+  state: yup.string().optional(),
+  postalCode: yup.string().optional(),
+  country: yup.string().optional(),
+  dateOfBirth: yup
+    .date()
+    .nullable()
+    .max(new Date(), 'Date of birth cannot be in the future')
+    .typeError('Please enter a valid date'),
+  gender: yup
+    .string()
+    .oneOf(
+      ['male', 'female', 'other', 'prefer-not-to-say'],
+      'Please select a valid gender'
+    )
+    .optional(),
+  status: yup
+    .string()
+    .oneOf(['active', 'inactive', 'pending'], 'Please select a valid status')
+    .required('Status is required'),
   roleId: yup.string().required('Role is required'),
-  notes: yup.string(),
-  profilePicture: yup.mixed<FileList>(),
-}) as unknown as YupSchemaType; // Type assertion to handle Yup's complex types
+  notes: yup.string().optional(),
+  profilePicture: yup
+    .mixed()
+    .test('fileSize', 'File size is too large (max 5MB)', (value) => {
+      if (!value || !(value instanceof FileList) || value.length === 0)
+        return true;
+      return value[0].size <= 5 * 1024 * 1024; // 5MB
+    }),
+});
 
 export const MemberForm = () => {
   const { id } = useParams<{ id?: string }>();
@@ -155,7 +147,7 @@ export const MemberForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-    // Fetch roles for the role dropdown
+  // Fetch roles for the role dropdown
   const {
     data: roles = [],
     isLoading: isLoadingRoles,
@@ -168,7 +160,7 @@ export const MemberForm = () => {
         if (!response.data.success || !response.data.data) {
           throw new Error('Failed to fetch roles: Invalid response format');
         }
-        return response.data.data; // Return the roles array
+        return response.data.data;
       } catch (error) {
         const errorMessage = handleApiError(error, 'Failed to fetch roles');
         throw new Error(errorMessage);
@@ -184,18 +176,23 @@ export const MemberForm = () => {
   };
 
   // Fetch member data if in edit mode
-  const { data: memberData, isLoading: isLoadingMember } = useQuery<FormValues | null, Error>({
+  const { data: memberData, isLoading: isLoadingMember } = useQuery<
+    FormValues | null,
+    Error
+  >({
     queryKey: ['member', id],
     queryFn: async (): Promise<FormValues | null> => {
       if (!id) return null;
       try {
-        const response = await apiClient.get<ApiResponse<ApiMember>>(`/api/members/${id}`);
-        const member = response.data.data; // Access the nested data property
-        
+        const response = await apiClient.get<ApiResponse<ApiMember>>(
+          `/api/members/${id}`
+        );
+        const member = response.data.data;
+
         if (!member) {
           throw new Error('Member not found');
         }
-        
+
         // Create a new object with all required FormValues properties
         const formValues: FormValues = {
           firstName: member.firstName || '',
@@ -212,11 +209,19 @@ export const MemberForm = () => {
           status: member.status || 'active',
           roleId: member.roleId || '',
           notes: member.notes,
-          // profilePicture will be handled separately
         };
+
+        // Set preview image if it exists
+        if (member.profilePicture) {
+          setPreviewImage(member.profilePicture);
+        }
+
         return formValues;
       } catch (error) {
-        const errorMessage = handleApiError(error, 'Failed to load member data');
+        const errorMessage = handleApiError(
+          error,
+          'Failed to load member data'
+        );
         throw new Error(errorMessage);
       }
     },
@@ -232,13 +237,14 @@ export const MemberForm = () => {
 
   // Initialize the form with react-hook-form
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<FormValues>({
-    // Use the properly typed schema
     resolver: yupResolver(memberSchema),
     defaultValues: {
       firstName: '',
@@ -250,53 +256,36 @@ export const MemberForm = () => {
     },
   });
 
-  // Set form values when member data is loaded
+  // Set form default values when member data is loaded
   useEffect(() => {
-    if (memberData && isEditing) {
-      // Create a copy of memberData to avoid mutating the original
-      const formData = { ...memberData };
-      
-      // Reset the form with the member data
-      reset(formData);
-      
-      // Set preview image if exists
-      // The profile picture URL comes from the API as a string
-      // and is stored in the profilePicture field of the member data
-      if (memberData.profilePicture && typeof memberData.profilePicture === 'string') {
-        setPreviewImage(
-          `${process.env.NX_API_URL || 'http://localhost:3333'}/uploads/profile-pictures/${memberData.profilePicture}`
-        );
-      }
+    if (memberData) {
+      Object.entries(memberData).forEach(([key, value]) => {
+        setValue(key as keyof FormValues, value as any);
+      });
     }
-  }, [memberData, isEditing, reset]);
+  }, [memberData, setValue]);
 
   // Handle file input change for profile picture
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Create a preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      
-      // Update form value with the selected file(s)
-      const files = e.target.files;
-      if (files && files.length > 0) {
-        setValue('profilePicture', files, { shouldValidate: true });
-      }
     }
   };
 
-  const onSubmit: SubmitHandler<FormValues> = async (formData) => {
+  // Form submission handler
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      const memberFormData = toMemberFormData(formData);
-      
+      const formData = toMemberFormData(data);
+
       if (isEditing && id) {
         // Update existing member
-        await apiClient.put(`/api/members/${id}`, memberFormData, {
+        await apiClient.put(`/api/members/${id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -304,454 +293,306 @@ export const MemberForm = () => {
         toast.success('Member updated successfully');
       } else {
         // Create new member
-        await apiClient.post('/api/members', memberFormData, {
+        await apiClient.post('/api/members', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
         toast.success('Member created successfully');
       }
-      
-      // Redirect to members list
+
       navigate('/members');
     } catch (error) {
-      const errorMessage = handleApiError(error, `Failed to ${isEditing ? 'update' : 'create'} member`);
+      const errorMessage = handleApiError(
+        error,
+        isEditing ? 'Failed to update member' : 'Failed to create member'
+      );
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleRemoveImage = () => {
-    setPreviewImage(null);
-    // Clear the file input by setting it to undefined
-    const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = '';
-    }
-    // Reset the form value
-    setValue('profilePicture', undefined as unknown as FileList);
-  };
-
+  // Loading state
   if (isLoadingMember || isLoadingRoles) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader size="lg" />
-      </div>
-    );
-  }
-
-  if (rolesError) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading required data
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>Failed to load roles. Please try again later.</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <Loader />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {isEditing ? 'Edit Member' : 'Add New Member'}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {isEditing
-            ? 'Update member information.'
-            : 'Add a new member to your organization.'}
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="md:grid md:grid-cols-3 md:gap-6">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Profile
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Basic member information.
-                </p>
-              </div>
-              <div className="mt-5 md:col-span-2 md:mt-0">
-                <div className="grid grid-cols-6 gap-6">
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      First name *
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      autoComplete="given-name"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.firstName ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('firstName')}
-                    />
-                    {errors.firstName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.firstName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Last name *
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      autoComplete="family-name"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.lastName ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('lastName')}
-                    />
-                    {errors.lastName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.lastName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Email address *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      autoComplete="email"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.email ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('email')}
-                    />
-                    {errors.email && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-4">
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      autoComplete="tel"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.phone ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('phone')}
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.phone.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="dateOfBirth"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Date of birth
-                    </label>
-                    <input
-                      type="date"
-                      id="dateOfBirth"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register('dateOfBirth')}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="gender"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Gender
-                    </label>
-                    <select
-                      id="gender"
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      {...register('gender')}
-                    >
-                      <option value="">Select...</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
-
-                  <div className="col-span-6">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Profile photo
-                    </label>
-                    <div className="mt-1 flex items-center">
-                      <span className="inline-block h-12 w-12 overflow-hidden rounded-full bg-gray-100">
-                        {previewImage ? (
-                          <img
-                            src={previewImage}
-                            alt="Profile preview"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <svg
-                            className="h-full w-full text-gray-300"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        )}
-                      </span>
-                      <div className="ml-4 flex">
-                        <div className="relative">
-                          <input
-                            id="profilePicture"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                          />
-                          <label
-                            htmlFor="profilePicture"
-                            className="rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          >
-                            Change
-                          </label>
-                        </div>
-                        {previewImage && (
-                          <button
-                            type="button"
-                            onClick={handleRemoveImage}
-                            className="ml-2 rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/members')}
-              className="mr-2"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              {isEditing ? 'Update Member' : 'Add Member'}
-            </Button>
+      <div className="md:grid md:grid-cols-3 md:gap-6">
+        <div className="md:col-span-1">
+          <div className="px-4 sm:px-0">
+            <h3 className="text-lg font-medium leading-6 text-foreground">
+              {isEditing ? 'Edit Member' : 'Add New Member'}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isEditing
+                ? 'Update the member details below.'
+                : 'Fill in the form to add a new member.'}
+            </p>
           </div>
         </div>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="md:grid md:grid-cols-3 md:gap-6">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Additional Information
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Additional details about the member.
-                </p>
-              </div>
-              <div className="mt-5 md:col-span-2 md:mt-0">
-                <div className="grid grid-cols-6 gap-6">
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="roleId"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Role *
-                    </label>
-                    <select
-                      id="roleId"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.roleId ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('roleId')}
-                    >
-                      <option value="">Select a role</option>
-                      {roles?.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {role.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.roleId && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.roleId.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="status"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Status *
-                    </label>
-                    <select
-                      id="status"
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                        errors.status ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      {...register('status')}
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                    {errors.status && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.status.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="col-span-6">
-                    <label
-                      htmlFor="address"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Street address
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      autoComplete="street-address"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register('address')}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-6 lg:col-span-2">
-                    <label
-                      htmlFor="city"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      autoComplete="address-level2"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register('city')}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3 lg:col-span-2">
-                    <label
-                      htmlFor="state"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      State / Province
-                    </label>
-                    <input
-                      type="text"
-                      id="state"
-                      autoComplete="address-level1"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register('state')}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-3 lg:col-span-2">
-                    <label
-                      htmlFor="postalCode"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      ZIP / Postal code
-                    </label>
-                    <input
-                      type="text"
-                      id="postalCode"
-                      autoComplete="postal-code"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register('postalCode')}
-                    />
-                  </div>
-
-                  <div className="col-span-6">
-                    <label
-                      htmlFor="notes"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Notes
-                    </label>
-                    <div className="mt-1">
-                      <textarea
-                        id="notes"
-                        rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        defaultValue={''}
-                        {...register('notes')}
+        <div className="mt-5 md:col-span-2 md:mt-0">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Profile Picture Upload */}
+            <div className="sm:col-span-6">
+              <div className="flex items-center">
+                <div className="mr-4">
+                  <div className="h-20 w-20 rounded-full bg-muted overflow-hidden">
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt="Profile preview"
+                        className="h-full w-full object-cover"
                       />
-                    </div>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Any additional notes about the member.
-                    </p>
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
+                        <span className="text-xl font-medium">
+                          {watch('firstName')?.[0]?.toUpperCase()}
+                          {watch('lastName')?.[0]?.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
+                </div>
+                <div>
+                  <FileUpload
+                    id="profilePicture"
+                    accept="image/*"
+                    {...register('profilePicture')}
+                    onChange={handleFileChange}
+                    className="mt-2"
+                  />
+                  {errors.profilePicture && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.profilePicture.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/members')}
-              className="mr-2"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              {isEditing ? 'Update Member' : 'Add Member'}
-            </Button>
-          </div>
+            {/* Personal Information */}
+            <div className="border-b border-border pb-6">
+              <h4 className="text-base font-medium text-foreground mb-4">
+                Personal Information
+              </h4>
+
+              <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div className="sm:col-span-3">
+                  <Input
+                    label="First Name"
+                    id="firstName"
+                    {...register('firstName')}
+                    error={errors.firstName?.message}
+                    required
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="Last Name"
+                    id="lastName"
+                    {...register('lastName')}
+                    error={errors.lastName?.message}
+                    required
+                  />
+                </div>
+
+                <div className="sm:col-span-4">
+                  <Input
+                    label="Email Address"
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    {...register('email')}
+                    error={errors.email?.message}
+                    required
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="Phone Number"
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    {...register('phone')}
+                    error={errors.phone?.message}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Controller
+                    name="dateOfBirth"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        label="Date of Birth"
+                        selected={field.value}
+                        onChange={(date) => field.onChange(date)}
+                        maxDate={new Date()}
+                        showYearDropdown
+                        dropdownMode="select"
+                        error={errors.dateOfBirth?.message}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Select
+                    label="Gender"
+                    id="gender"
+                    {...register('gender')}
+                    error={errors.gender?.message}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Address Information */}
+            <div className="border-b border-border pb-6">
+              <h4 className="text-base font-medium text-foreground mb-4">
+                Address Information
+              </h4>
+
+              <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div className="sm:col-span-6">
+                  <Input
+                    label="Street Address"
+                    id="address"
+                    {...register('address')}
+                    error={errors.address?.message}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="City"
+                    id="city"
+                    {...register('city')}
+                    error={errors.city?.message}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="State/Province"
+                    id="state"
+                    {...register('state')}
+                    error={errors.state?.message}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="Postal Code"
+                    id="postalCode"
+                    {...register('postalCode')}
+                    error={errors.postalCode?.message}
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Input
+                    label="Country"
+                    id="country"
+                    {...register('country')}
+                    error={errors.country?.message}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="border-b border-border pb-6">
+              <h4 className="text-base font-medium text-foreground mb-4">
+                Additional Information
+              </h4>
+
+              <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div className="sm:col-span-3">
+                  <Select
+                    label="Status"
+                    id="status"
+                    {...register('status')}
+                    error={errors.status?.message}
+                    required
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </Select>
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Select
+                    label="Role"
+                    id="roleId"
+                    {...register('roleId')}
+                    error={errors.roleId?.message}
+                    required
+                  >
+                    <option value="">Select a role</option>
+                    {roles.map((role) => (
+                      <option key={role._id} value={role._id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div className="sm:col-span-6">
+                  <Textarea
+                    label="Notes"
+                    id="notes"
+                    rows={3}
+                    {...register('notes')}
+                    error={errors.notes?.message}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/members')}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader className="mr-2 h-4 w-4" />
+                    {isEditing ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : isEditing ? (
+                  'Update Member'
+                ) : (
+                  'Create Member'
+                )}
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

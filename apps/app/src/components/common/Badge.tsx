@@ -1,38 +1,81 @@
-import { ReactNode } from 'react';
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '../../lib/utils';
 
-type BadgeColor = 'gray' | 'red' | 'yellow' | 'green' | 'blue' | 'indigo' | 'purple' | 'pink';
+const badgeVariants = cva(
+  'inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  {
+    variants: {
+      variant: {
+        default:
+          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+        secondary:
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        destructive:
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+        outline: 'text-foreground',
+        success:
+          'border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+        warning:
+          'border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400',
+        error:
+          'border-transparent bg-red-500/15 text-red-700 dark:text-red-400',
+        info: 'border-transparent bg-blue-500/15 text-blue-700 dark:text-blue-400',
+      },
+      size: {
+        sm: 'text-xs px-2 py-0.5',
+        default: 'text-sm px-2.5 py-0.5',
+        lg: 'text-base px-3 py-1',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+);
 
-interface BadgeProps {
-  children: ReactNode;
-  color?: BadgeColor;
-  className?: string;
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {
+  /**
+   * Optional icon to display before the badge content
+   */
+  icon?: React.ReactNode;
+  /**
+   * Optional click handler
+   */
+  onClick?: () => void;
 }
 
-const colorClasses = {
-  gray: 'bg-gray-100 text-gray-800',
-  red: 'bg-red-100 text-red-800',
-  yellow: 'bg-yellow-100 text-yellow-800',
-  green: 'bg-green-100 text-green-800',
-  blue: 'bg-blue-100 text-blue-800',
-  indigo: 'bg-indigo-100 text-indigo-800',
-  purple: 'bg-purple-100 text-purple-800',
-  pink: 'bg-pink-100 text-pink-800',
-};
-
-export const Badge = ({
+function Badge({
+  className,
+  variant,
+  size,
+  icon,
   children,
-  color = 'gray',
-  className = '',
-}: BadgeProps) => {
-  const baseClasses =
-    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
-  const colorClass = colorClasses[color] || colorClasses.gray;
+  onClick,
+  ...props
+}: BadgeProps) {
+  const Component = onClick ? 'button' : 'div';
 
   return (
-    <span className={`${baseClasses} ${colorClass} ${className}`}>
+    <Component
+      className={cn(
+        badgeVariants({ variant, size }),
+        {
+          'cursor-pointer': onClick,
+          'gap-1.5': icon,
+        },
+        className
+      )}
+      onClick={onClick}
+      {...props}
+    >
+      {icon && <span className="flex-shrink-0">{icon}</span>}
       {children}
-    </span>
+    </Component>
   );
-};
+}
 
-export default Badge;
+export { Badge, badgeVariants };

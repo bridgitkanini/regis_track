@@ -1,0 +1,241 @@
+/* Import IBM Plex Sans with all weights and styles */
+@import url('@fontsource/ibm-plex-sans/100.css');
+@import url('@fontsource/ibm-plex-sans/200.css');
+@import url('@fontsource/ibm-plex-sans/300.css');
+@import url('@fontsource/ibm-plex-sans/400.css');
+@import url('@fontsource/ibm-plex-sans/500.css');
+@import url('@fontsource/ibm-plex-sans/600.css');
+@import url('@fontsource/ibm-plex-sans/700.css');
+
+/* Import italic variants */
+@import url('@fontsource/ibm-plex-sans/100-italic.css');
+@import url('@fontsource/ibm-plex-sans/200-italic.css');
+@import url('@fontsource/ibm-plex-sans/300-italic.css');
+@import url('@fontsource/ibm-plex-sans/400-italic.css');
+@import url('@fontsource/ibm-plex-sans/500-italic.css');
+@import url('@fontsource/ibm-plex-sans/600-italic.css');
+@import url('@fontsource/ibm-plex-sans/700-italic.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 201 96% 32%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 201 96% 32%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 201 96% 42%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 201 96% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  p {
+    @apply leading-relaxed text-gray-700 dark:text-gray-300;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+  }
+
+  /* Selection styles */
+  ::selection {
+    @apply bg-primary/20 text-primary-foreground;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-sm;
+  }
+}
+
+@layer components {
+  /* Container */
+  .container {
+    @apply px-4 sm:px-6 lg:px-8 mx-auto w-full max-w-7xl;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6 pb-0;
+  }
+
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Button */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 py-2 px-4;
+  }
+
+  .btn-outline {
+    @apply border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4;
+  }
+
+  .btn-link {
+    @apply underline-offset-4 hover:underline text-primary;
+  }
+
+  /* Input */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Alert */
+  .alert {
+    @apply relative w-full rounded-lg border p-4 [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg+div]:translate-y-[-3px] [&>svg~*]:pl-8;
+  }
+
+  .alert-success {
+    @apply border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-200;
+  }
+
+  .alert-warning {
+    @apply border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900 dark:bg-yellow-900/20 dark:text-yellow-200;
+  }
+
+  .alert-error {
+    @apply border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-200;
+  }
+
+  .alert-info {
+    @apply border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-200;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .badge-primary {
+    @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+  }
+
+  .badge-secondary {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .badge-outline {
+    @apply text-foreground;
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @animate-pulse bg-muted rounded-md;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    @apply z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
+  }
+}

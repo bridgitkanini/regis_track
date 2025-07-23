@@ -1,10 +1,11 @@
-import { 
-  ArrowTrendingUpIcon, 
+import {
+  ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  UserGroupIcon, 
-  UserPlusIcon, 
-  ClockIcon 
+  UserGroupIcon,
+  UserPlusIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
+import { cn } from '../../lib/utils';
 
 // Define the DashboardStats type
 export type DashboardStats = {
@@ -13,10 +14,6 @@ export type DashboardStats = {
   newMembersThisMonth: number;
   membershipRenewals: number;
 };
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
 
 // Format number with commas
 export const formatNumber = (num: number): string => {
@@ -34,18 +31,17 @@ type StatItem = {
 
 interface StatsGridProps {
   stats: DashboardStats;
+  className?: string;
 }
 
-export const StatsGrid = ({ stats }: StatsGridProps) => {
-  // Calculate percentage changes (in a real app, these would come from the API)
-  // For now, we'll use placeholder values
+export const StatsGrid = ({ stats, className }: StatsGridProps) => {
   const statItems: StatItem[] = [
     {
       name: 'Total Members',
       value: formatNumber(stats.totalMembers),
       icon: UserGroupIcon,
       change: '+12%',
-      changeType: 'increase' as const,
+      changeType: 'increase',
       description: 'Total number of members registered',
     },
     {
@@ -53,7 +49,7 @@ export const StatsGrid = ({ stats }: StatsGridProps) => {
       value: formatNumber(stats.activeMembers),
       icon: UserGroupIcon,
       change: '+8.2%',
-      changeType: 'increase' as const,
+      changeType: 'increase',
       description: 'Members with active status',
     },
     {
@@ -61,74 +57,94 @@ export const StatsGrid = ({ stats }: StatsGridProps) => {
       value: formatNumber(stats.newMembersThisMonth),
       icon: UserPlusIcon,
       change: '+5.4%',
-      changeType: 'increase' as const,
+      changeType: 'increase',
       description: 'New members registered this month',
     },
     {
       name: 'Renewals Due',
       value: formatNumber(stats.membershipRenewals),
       icon: ClockIcon,
-      change: stats.membershipRenewals > 0 ? `+${stats.membershipRenewals}` : '0',
-      changeType: stats.membershipRenewals > 0 ? 'increase' as const : 'decrease' as const,
+      change:
+        stats.membershipRenewals > 0 ? `+${stats.membershipRenewals}` : '0',
+      changeType: stats.membershipRenewals > 0 ? 'increase' : 'decrease',
       description: 'Memberships requiring renewal soon',
-    }
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div
+      className={cn(
+        'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4',
+        className
+      )}
+    >
       {statItems.map((item) => {
         const Icon = item.icon;
-        const ChangeIcon = item.changeType === 'increase' ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
-        const changeColor = item.changeType === 'increase' ? 'text-green-600' : 'text-red-600';
-        
+        const ChangeIcon =
+          item.changeType === 'increase'
+            ? ArrowTrendingUpIcon
+            : ArrowTrendingDownIcon;
+
+        const changeConfig = {
+          increase: {
+            bg: 'bg-green-100 dark:bg-green-900/30',
+            text: 'text-green-700 dark:text-green-400',
+            icon: 'text-green-600 dark:text-green-400',
+          },
+          decrease: {
+            bg: 'bg-red-100 dark:bg-red-900/30',
+            text: 'text-red-700 dark:text-red-400',
+            icon: 'text-red-600 dark:text-red-400',
+          },
+          neutral: {
+            bg: 'bg-gray-100 dark:bg-gray-800',
+            text: 'text-gray-700 dark:text-gray-400',
+            icon: 'text-gray-600 dark:text-gray-400',
+          },
+        }[item.changeType];
+
         return (
           <div
             key={item.name}
-            className="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-12 shadow transition-all duration-200 hover:shadow-md sm:px-6 sm:pt-6"
+            className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-all duration-200 hover:shadow-md"
           >
-            <dt>
-              <div className="absolute rounded-md bg-indigo-500 p-3">
-                <Icon className="h-6 w-6 text-white" aria-hidden="true" />
-              </div>
-              <p className="ml-16 truncate text-sm font-medium text-gray-500">
-                {item.name}
-              </p>
-            </dt>
-            <dd className="ml-16 flex items-baseline pb-6 sm:pb-7">
-              <div>
-                <p className="text-2xl font-semibold text-gray-900">{item.value}</p>
-                <p className="text-sm text-gray-500">{item.description}</p>
+            <div className="flex items-start justify-between">
+              <div className="flex-shrink-0 rounded-md bg-primary/10 p-2">
+                <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
               </div>
               <div
-                className={classNames(
-                  changeColor,
-                  'ml-2 flex items-baseline text-sm font-semibold'
+                className={cn(
+                  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                  changeConfig.bg,
+                  changeConfig.text
                 )}
               >
-                <ChangeIcon
-                  className={classNames(
-                    'h-5 w-5 flex-shrink-0 self-center',
-                    changeColor
-                  )}
-                  aria-hidden="true"
-                />
-                <span className="sr-only">
-                  {item.changeType === 'increase' ? 'Increased' : 'Decreased'} by
-                </span>
+                <ChangeIcon className="mr-1 h-3.5 w-3.5" />
                 {item.change}
               </div>
-            </dd>
-            <div className="absolute inset-x-0 bottom-0 bg-gray-50 px-4 py-4 sm:px-6">
-              <div className="text-sm">
-                <button
-                  type="button"
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
-                  onClick={() => console.log(`View all ${item.name}`)}
-                >
-                  View all
-                  <span className="sr-only"> {item.name} stats</span>
-                </button>
-              </div>
+            </div>
+
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                {item.name}
+              </h3>
+              <p className="mt-1 text-2xl font-semibold text-foreground">
+                {item.value}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {item.description}
+              </p>
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 bg-muted/20 px-4 py-2 text-center text-xs">
+              <button
+                type="button"
+                className="font-medium text-primary hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm"
+                onClick={() => console.log(`View all ${item.name}`)}
+              >
+                View details
+                <span className="sr-only"> {item.name} stats</span>
+              </button>
             </div>
           </div>
         );

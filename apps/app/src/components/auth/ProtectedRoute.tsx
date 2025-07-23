@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import { Loader } from '../common/Loader';
 import { useGetCurrentUserQuery } from '../../features/auth/authApi';
+import { Button } from '../common/Button';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -21,8 +22,11 @@ export const ProtectedRoute = ({
     data: currentUser,
     isLoading,
     isError,
+    error,
+    refetch,
   } = useGetCurrentUserQuery(undefined, {
     skip: !isAuthenticated, // Skip the query if not authenticated
+    refetchOnMountOrArgChange: true, // Ensure we always have fresh data
   });
 
   const navigate = useNavigate();
@@ -31,7 +35,13 @@ export const ProtectedRoute = ({
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       // Redirect to login page if not authenticated
-      navigate('/login', { state: { from: location }, replace: true });
+      navigate('/login', {
+        state: {
+          from: location,
+          message: 'Please sign in to access this page',
+        },
+        replace: true,
+      });
     } else if (
       !isLoading &&
       isAuthenticated &&
@@ -40,12 +50,19 @@ export const ProtectedRoute = ({
     ) {
       // Check if user has required role
       const hasRequiredRole = requiredRoles.some(
-        (role) => currentUser.role.name === role
+        (role) => currentUser.role?.name === role
       );
 
       if (!hasRequiredRole) {
         // Redirect to unauthorized page if user doesn't have required role
-        navigate('/unauthorized', { replace: true });
+        navigate('/unauthorized', {
+          state: {
+            from: location,
+            requiredRoles,
+            currentRole: currentUser.role?.name,
+          },
+          replace: true,
+        });
       }
     }
   }, [
@@ -60,25 +77,67 @@ export const ProtectedRoute = ({
   // Show loading state while checking authentication
   if (isLoading || (isAuthenticated && !currentUser && !isError)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader size="lg" />
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader size="lg" />
+          <p className="text-sm text-muted-foreground">
+            Checking permissions...
+          </p>
+        </div>
       </div>
     );
   }
 
-  // If there was an error fetching the current user, treat as not authenticated
+  // Handle error state
   if (isError) {
-    return null; // Will be redirected by the useEffect
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
+          <div className="space-y-4 text-center">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Authentication Error
+              </h2>
+              <p className="text-muted-foreground">
+                {error && 'message' in error
+                  ? error.message
+                  : 'An error occurred while checking your authentication status.'}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              className="w-full"
+            >
+              Retry
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                navigate('/login', {
+                  state: { from: location },
+                  replace: true,
+                });
+              }}
+              className="w-full"
+            >
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // If not authenticated, show nothing (will be redirected by the useEffect)
   if (!isAuthenticated) {
-    return null; // Will be redirected by the useEffect
+    return null;
   }
 
   // Check if user has required role (if any required)
   if (
     requiredRoles.length > 0 &&
-    !requiredRoles.some((role) => user?.role.name === role)
+    !requiredRoles.some((role) => user?.role?.name === role)
   ) {
     return null; // Will be redirected by the useEffect
   }
