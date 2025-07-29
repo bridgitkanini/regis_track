@@ -44,7 +44,9 @@ const upload = multer({
 });
 
 // Middleware for handling single file upload
-export const uploadProfilePicture = upload.single('profilePicture');
+import { RequestHandler } from 'express';
+
+export const uploadProfilePicture: RequestHandler = upload.single('profilePicture');
 
 // Middleware for handling file upload errors
 export const handleUploadError = (

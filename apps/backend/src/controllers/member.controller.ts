@@ -1,40 +1,91 @@
 import { Request, Response, NextFunction } from 'express';
-import { Member } from '../models';
+import { Member, IMember } from '../models/member.model';
 import { ApiError } from '../middleware/error.middleware';
 import { ActivityLog } from '../models/activity-log.model';
+import { Types, Document } from 'mongoose';
+import { IUser } from '../models/user.model';
+
+// Import ParsedQs for proper query parameter typing
+import { ParsedQs } from 'qs';
+
+// Helper type for query parameters
+type QueryParam = string | string[] | ParsedQs | ParsedQs[] | undefined;
+
+// Type guard to check if value is a string
+const isString = (value: unknown): value is string => {
+  return typeof value === 'string' || value instanceof String;
+};
+
+// Helper function to safely get string from query
+const getQueryString = (param: unknown, defaultValue: string = ''): string => {
+  if (!param) return defaultValue;
+  if (isString(param)) return param;
+  if (Array.isArray(param)) {
+    return param.length > 0 && isString(param[0]) ? param[0] : defaultValue;
+  }
+  if (typeof param === 'object' && param !== null) {
+    return defaultValue;
+  }
+  return String(param);
+};
+
+// Helper function to safely get number from query
+const getQueryNumber = (param: unknown, defaultValue: number): number => {
+  const strValue = getQueryString(param, '');
+  const num = parseInt(strValue, 10);
+  return isNaN(num) ? defaultValue : num;
+};
+
+// Extend the Express Request type to include user and file
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File;
+      user?: IUser & Document;
+    }
+  }
+}
 
 // @desc    Get all members with pagination, filtering, and sorting
 // @route   GET /api/members
 // @access  Private
 export const getMembers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Pagination
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    // Use the helper functions to get query parameters with proper type assertions
+    const page = getQueryNumber((req.query as any).page, 1);
+    const limit = getQueryNumber((req.query as any).limit, 10);
     const skip = (page - 1) * limit;
 
-    // Sorting
-    const sortBy = (req.query.sortBy as string) || 'createdAt';
-    const sortOrder = (req.query.sortOrder as string) === 'desc' ? -1 : 1;
-    const sort = { [sortBy]: sortOrder };
+    // Sorting with proper type assertions
+    const sortBy = getQueryString((req.query as any).sortBy, 'createdAt');
+    const sortOrder = getQueryString((req.query as any).sortOrder, 'asc') === 'desc' ? -1 : 1;
+    const sort: { [key: string]: 1 | -1 } = {};
+    sort[sortBy] = sortOrder as 1 | -1;
 
-    // Filtering
-    const filter: any = {};
-    
-    if (req.query.search) {
+    // Filtering with proper types
+    const filter: Record<string, unknown> = {};
+
+    // Search with proper type assertion
+    const searchTerm = getQueryString((req.query as any).search);
+    if (searchTerm) {
       filter.$or = [
-        { firstName: { $regex: req.query.search, $options: 'i' } },
-        { lastName: { $regex: req.query.search, $options: 'i' } },
-        { email: { $regex: req.query.search, $options: 'i' } },
+        { firstName: { $regex: searchTerm, $options: 'i' } },
+        { lastName: { $regex: searchTerm, $options: 'i' } },
+        { email: { $regex: searchTerm, $options: 'i' } },
+        { phone: { $regex: searchTerm, $options: 'i' } },
       ];
     }
 
-    if (req.query.status) {
-      filter.status = req.query.status;
+    // Status filter with proper type assertion
+    const status = getQueryString((req.query as any).status);
+    if (status) {
+      filter.status = status;
     }
 
-    if (req.query.role) {
-      filter.role = req.query.role;
+    // Role filter with proper type assertion
+    const role = getQueryString((req.query as any).role);
+    if (role) {
+      filter.role = role;
     }
 
     // Get total count for pagination
@@ -91,7 +142,11 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
       throw new ApiError(400, 'Member with this email already exists');
     }
 
-    // Create member
+    // Create member with user check
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
+    }
+    
     const member = await Member.create({
       ...req.body,
       createdBy: req.user._id,
@@ -145,22 +200,28 @@ export const updateMember = async (req: Request, res: Response, next: NextFuncti
     );
 
     // Log the activity
-    const changes: Record<string, any> = {};
-    Object.keys(req.body).forEach(key => {
-      if (JSON.stringify(originalMember[key]) !== JSON.stringify(req.body[key])) {
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+    const allowedKeys: Array<keyof IMember> = ['firstName', 'lastName', 'email', 'dateOfBirth', 'role', 'status'];
+    
+    for (const key of allowedKeys) {
+      const memberValue = originalMember[key as keyof typeof originalMember];
+      const bodyValue = req.body[key];
+      
+      if (bodyValue !== undefined && JSON.stringify(memberValue) !== JSON.stringify(bodyValue)) {
         changes[key] = {
-          from: originalMember[key],
-          to: req.body[key]
+          from: memberValue,
+          to: bodyValue
         };
       }
-    });
+    }
 
-    if (Object.keys(changes).length > 0) {
+    if (Object.keys(changes).length > 0 && member) {
+      // Using non-null assertion for req.user since this is a protected route with authenticate middleware
       await ActivityLog.create({
         action: 'update',
         collectionName: 'Member',
         documentId: member._id,
-        userId: req.user._id,
+        userId: req.user!._id, // Non-null assertion is safe here due to auth middleware
         changes,
       });
     }
@@ -179,6 +240,11 @@ export const updateMember = async (req: Request, res: Response, next: NextFuncti
 // @access  Private
 export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Check for authenticated user
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
+    }
+
     const member = await Member.findById(req.params.id);
     
     if (!member) {
@@ -213,6 +279,11 @@ export const uploadProfilePicture = async (req: Request, res: Response, next: Ne
   try {
     if (!req.file) {
       throw new ApiError(400, 'Please upload a file');
+    }
+
+    // Check for authenticated user
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
     }
 
     const member = await Member.findById(req.params.id);

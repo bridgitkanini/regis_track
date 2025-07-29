@@ -5,7 +5,9 @@ import dashboardRoutes from './dashboard.routes';
 import { notFound, errorHandler } from '../middleware/error.middleware';
 import { activityLogger } from '../middleware/activity-logger.middleware';
 
-const router = Router();
+import { Router as ExpressRouter } from 'express';
+
+const router: ExpressRouter = Router();
 
 // API Routes
 router.use('/api/auth', authRoutes);

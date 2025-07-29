@@ -4,8 +4,15 @@ import jwt from 'jsonwebtoken';
 import { IRole } from './role.model';
 
 const SALT_WORK_FACTOR = 10;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+// Ensure JWT_SECRET is defined
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is not defined in environment variables');
+}
+const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET;
+
+// Set default token expiration (7 days)
+const DEFAULT_JWT_EXPIRES_IN = '7d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || DEFAULT_JWT_EXPIRES_IN;
 
 export interface IUser extends Document {
   username: string;
@@ -79,16 +86,26 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 
 // Method to generate JWT token
 userSchema.methods.generateAuthToken = function (): string {
-  return jwt.sign(
-    {
-      _id: this._id,
-      username: this.username,
-      email: this.email,
-      role: this.role,
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  interface JwtPayload {
+    _id: string;
+    username: string;
+    email: string;
+    role: any; // You might want to replace 'any' with a proper role type
+  }
+  
+  const payload: JwtPayload = {
+    _id: this._id.toString(),
+    username: this.username,
+    email: this.email,
+    role: this.role,
+  };
+  
+  // Set token expiration
+  const options: jwt.SignOptions = { 
+    expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn']
+  };
+  
+  return jwt.sign(payload, JWT_SECRET, options);
 };
 
 export const User = model<IUser>('User', userSchema);

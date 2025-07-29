@@ -2,7 +2,9 @@ import { Router } from 'express';
 import * as dashboardController from '../controllers/dashboard.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
-const router = Router();
+import { Router as ExpressRouter } from 'express';
+
+const router: ExpressRouter = Router();
 
 // Apply authentication and authorization middleware to all routes
 router.use(authenticate, authorize('admin'));

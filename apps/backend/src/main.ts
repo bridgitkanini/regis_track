@@ -10,7 +10,9 @@ import routes from './routes';
 import { ApiError } from './middleware/error.middleware';
 
 // Initialize express app
-const app = express();
+import { Express } from 'express';
+
+const app: Express = express();
 const server = createServer(app);
 
 // Connect to MongoDB

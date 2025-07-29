@@ -2,7 +2,9 @@ import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
-const router = Router();
+import { Router as ExpressRouter } from 'express';
+
+const router: ExpressRouter = Router();
 
 // Public routes
 router.post('/register', authController.register);

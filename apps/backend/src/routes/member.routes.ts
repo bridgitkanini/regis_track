@@ -3,7 +3,9 @@ import * as memberController from '../controllers/member.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { uploadProfilePicture, handleUploadError } from '../middleware/upload.middleware';
 
-const router = Router();
+import { Router as ExpressRouter } from 'express';
+
+const router: ExpressRouter = Router();
 
 // Apply authentication middleware to all routes
 router.use(authenticate);

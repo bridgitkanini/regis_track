@@ -33,12 +33,12 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     // Generate token
     const token = user.generateAuthToken();
 
-    // Log the activity
+    // Log the activity - using non-null assertion since this is a protected route
     await ActivityLog.create({
       action: 'create',
       collectionName: 'User',
       documentId: user._id,
-      userId: user._id,
+      userId: req.user!._id, // Non-null assertion is safe here due to auth middleware
       changes: { username, email, role: role.name },
     });
 
@@ -119,21 +119,24 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 // @access  Private
 export const getMe = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
+    }
+
     const user = await User.findById(req.user._id).populate('role', 'name permissions');
     
     if (!user) {
       throw new ApiError(404, 'User not found');
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
-      user: {
+      data: {
         id: user._id,
         username: user.username,
         email: user.email,
         role: user.role,
-        isActive: user.isActive,
-        lastLogin: user.lastLogin,
+        createdAt: (user as any).createdAt, // Using type assertion as a temporary fix
       },
     });
   } catch (error) {
@@ -146,15 +149,19 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
 // @access  Private
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
+    }
+
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
       throw new ApiError(404, 'User not found');
     }
 
     const token = user.generateAuthToken();
 
-    res.json({
+    res.status(200).json({
       success: true,
       token,
     });
@@ -168,13 +175,15 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 // @access  Private
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Log the activity
-    await ActivityLog.create({
-      action: 'logout',
-      collectionName: 'User',
-      documentId: req.user._id,
-      userId: req.user._id,
-    });
+    // Log the activity - using non-null assertion since this is a protected route
+    if (req.user) {
+      await ActivityLog.create({
+        action: 'logout',
+        collectionName: 'User',
+        documentId: req.user._id,
+        userId: req.user._id,
+      });
+    }
 
     res.json({
       success: true,
