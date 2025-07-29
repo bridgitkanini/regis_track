@@ -8,6 +8,8 @@ import { createServer } from 'http';
 import connectDB from './config/database';
 import routes from './routes';
 import { ApiError } from './middleware/error.middleware';
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './config/swagger';
 
 // Initialize express app
 import { Express } from 'express';
@@ -38,13 +40,29 @@ if (process.env.NODE_ENV === 'development') {
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
-// API routes
-app.use('/', routes);
+// Serve Swagger UI
+const swaggerOptions = {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'RegisTrack API Documentation',
+};
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Serve Swagger UI at /swagger
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
+
+// Serve Swagger JSON
+app.get('/swagger.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(specs);
 });
+
+// Debug route to check if the server is running
+app.get('/test', (req: Request, res: Response) => {
+  res.send('Test route is working!');
+});
+
+// API routes - mount after other routes to avoid conflicts
+app.use('/', routes);
 
 // Handle 404
 app.use((req: Request, res: Response) => {
@@ -90,12 +108,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3333;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-server.listen(PORT, () => {
-  console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
-  console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`);
+  console.log(`API Documentation: http://localhost:${port}/swagger`);
 });
 
 // Handle unhandled promise rejections

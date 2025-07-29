@@ -46,9 +46,83 @@ declare global {
   }
 }
 
-// @desc    Get all members with pagination, filtering, and sorting
-// @route   GET /api/members
-// @access  Private
+/**
+ * @swagger
+ * /api/members:
+ *   get:
+ *     summary: Get all members with pagination, filtering, and sorting
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order (asc or desc)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term to filter members by name or email
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter members by status
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filter members by role
+ *     responses:
+ *       200:
+ *         description: List of members retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                   description: Total number of members
+ *                 page:
+ *                   type: integer
+ *                   description: Current page number
+ *                 pages:
+ *                   type: integer
+ *                   description: Total number of pages
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Member'
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized
+ */
 export const getMembers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Use the helper functions to get query parameters with proper type assertions
@@ -111,9 +185,40 @@ export const getMembers = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-// @desc    Get single member
-// @route   GET /api/members/:id
-// @access  Private
+/**
+ * @swagger
+ * /api/members/{id}:
+ *   get:
+ *     summary: Get a single member by ID
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID
+ *     responses:
+ *       200:
+ *         description: Member details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Member'
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to view this member
+ *       404:
+ *         description: Member not found
+ */
 export const getMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const member = await Member.findById(req.params.id).populate('createdBy', 'username');
@@ -131,9 +236,88 @@ export const getMember = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-// @desc    Create new member
-// @route   POST /api/members
-// @access  Private
+/**
+ * @swagger
+ * /api/members:
+ *   post:
+ *     summary: Create a new member
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MemberInput'
+ *     responses:
+ *       201:
+ *         description: Member created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Member'
+ *       400:
+ *         description: Invalid input data or missing required fields
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to create members
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     MemberInput:
+ *       type: object
+ *       required:
+ *         - firstName
+ *         - lastName
+ *         - email
+ *       properties:
+ *         firstName:
+ *           type: string
+ *           example: John
+ *         lastName:
+ *           type: string
+ *           example: Doe
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: john.doe@example.com
+ *         phone:
+ *           type: string
+ *           example: +1234567890
+ *         address:
+ *           type: object
+ *           properties:
+ *             street:
+ *               type: string
+ *             city:
+ *               type: string
+ *             state:
+ *               type: string
+ *             postalCode:
+ *               type: string
+ *             country:
+ *               type: string
+ *         dateOfBirth:
+ *           type: string
+ *           format: date
+ *         gender:
+ *           type: string
+ *           enum: [male, female, other]
+ *         status:
+ *           type: string
+ *           enum: [active, inactive, pending]
+ *           default: active
+ *         notes:
+ *           type: string
+ */
 export const createMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Check if member with email already exists
@@ -170,9 +354,48 @@ export const createMember = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// @desc    Update member
-// @route   PUT /api/members/:id
-// @access  Private
+/**
+ * @swagger
+ * /api/members/{id}:
+ *   put:
+ *     summary: Update a member
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MemberInput'
+ *     responses:
+ *       200:
+ *         description: Member updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Member'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to update this member
+ *       404:
+ *         description: Member not found
+ */
 export const updateMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let member = await Member.findById(req.params.id);
@@ -235,9 +458,44 @@ export const updateMember = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// @desc    Delete member
-// @route   DELETE /api/members/:id
-// @access  Private
+/**
+ * @swagger
+ * /api/members/{id}:
+ *   delete:
+ *     summary: Delete a member
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID to delete
+ *     responses:
+ *       200:
+ *         description: Member deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: ID of the deleted member
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to delete this member
+ *       404:
+ *         description: Member not found
+ */
 export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Check for authenticated user
@@ -272,9 +530,57 @@ export const deleteMember = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// @desc    Upload member profile picture
-// @route   POST /api/members/:id/upload
-// @access  Private
+/**
+ * @swagger
+ * /api/members/{id}/upload:
+ *   post:
+ *     summary: Upload a profile picture for a member
+ *     tags: [Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePicture:
+ *                 type: string
+ *                 format: binary
+ *                 description: The image file to upload (JPG, PNG, or GIF)
+ *     responses:
+ *       200:
+ *         description: Profile picture uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     profilePicture:
+ *                       type: string
+ *                       description: URL to the uploaded profile picture
+ *       400:
+ *         description: No file uploaded or invalid file type
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to update this member
+ *       404:
+ *         description: Member not found
+ */
 export const uploadProfilePicture = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.file) {
