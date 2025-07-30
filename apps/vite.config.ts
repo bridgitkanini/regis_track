@@ -8,11 +8,12 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../node_modules/.vite/apps',
   server: {
-    port: 4200,
+    port: 4201,
     host: 'localhost',
+    open: true
   },
   preview: {
-    port: 4200,
+    port: 4201,
     host: 'localhost',
   },
   plugins: [
@@ -28,6 +29,9 @@ export default defineConfig(() => ({
     outDir: '../dist/apps',
     emptyOutDir: true,
     reportCompressedSize: true,
+    rollupOptions: {
+      input: 'src/root.tsx',
+    },
     commonjsOptions: {
       transformMixedEsModules: true,
     },

@@ -10,6 +10,9 @@
     },
     "lint": {
       "inputs": ["default", "{workspaceRoot}/.eslintrc.json"]
+    },
+    "e2e": {
+      "inputs": ["default", "^production"]
     }
   },
   "namedInputs": {
@@ -30,41 +33,43 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": ["build", "test", "lint"]
+        "cacheableOperations": ["build", "test", "lint", "e2e"]
       }
     }
   },
   "generators": {
-    "@nx/react": {
-      "application": {
-        "babel": true,
-        "style": "tailwind",
-        "linter": "eslint",
-        "bundler": "vite"
-      },
-      "component": {
-        "style": "tailwind"
-      },
-      "library": {
-        "style": "tailwind",
-        "linter": "eslint"
-      }
+    "@nx/workspace:library": {
+      "js": false,
+      "unitTestRunner": "jest",
+      "linter": "eslint"
+    },
+    "@nx/next:application": {
+      "style": "@emotion/styled",
+      "linter": "eslint",
+      "babel": true
+    },
+    "@nx/next:library": {
+      "style": "@emotion/styled",
+      "linter": "eslint"
+    },
+    "@nx/express:application": {
+      "unitTestRunner": "jest",
+      "linter": "eslint"
+    },
+    "@nx/react:application": {
+      "style": "@emotion/styled",
+      "linter": "eslint",
+      "babel": true
+    },
+    "@nx/react:library": {
+      "style": "@emotion/styled",
+      "linter": "eslint"
+    },
+    "@nx/next:component": {
+      "style": "@emotion/styled"
+    },
+    "@nx/react:component": {
+      "style": "@emotion/styled"
     }
-  },
-  "plugins": [
-    {
-      "plugin": "@nx/vite/plugin",
-      "options": {
-        "buildTargetName": "build",
-        "testTargetName": "test",
-        "serveTargetName": "serve",
-        "devTargetName": "dev",
-        "previewTargetName": "preview",
-        "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "typecheck",
-        "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps"
-      }
-    }
-  ]
+  }
 }
