@@ -1,96 +1,223 @@
-# 
+# RegisTrack
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+[![Nx](https://img.shields.io/nx/r/regis-track)](https://nx.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+RegisTrack is a modern web application built with React, TypeScript, and Node.js, using Nx as the build system. The project follows a monorepo structure with separate frontend and backend applications.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## 🚀 Features
 
-## Run tasks
+- **Frontend**: Built with React, TypeScript, and Vite
+- **Backend**: Node.js with Express
+- **Styling**: Tailwind CSS with Headless UI components
+- **State Management**: React Query for server state
+- **Form Handling**: React Hook Form with validation
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **Code Quality**: ESLint and Prettier for consistent code style
 
-To run tasks with Nx use:
+## 📦 Project Structure
 
-```sh
-npx nx <target> <project-name>
+```
+.
+├── apps/
+│   ├── app/                            # Frontend React application
+│   │   ├── src/
+│   │   │   ├── app/                   # App configuration and store
+│   │   │   │   └── store.ts           # Redux store configuration
+│   │   │   │
+│   │   │   ├── components/            # Reusable UI components
+│   │   │   │   ├── auth/              # Authentication components
+│   │   │   │   │   ├── LoginForm.tsx
+│   │   │   │   │   ├── RegisterForm.tsx
+│   │   │   │   │   └── ProtectedRoute.tsx
+│   │   │   │   │
+│   │   │   │   ├── common/            # Shared UI components
+│   │   │   │   │   ├── Button.tsx
+│   │   │   │   │   ├── DropdownMenu.tsx
+│   │   │   │   │   ├── Loader.tsx
+│   │   │   │   │   └── ...
+│   │   │   │   │
+│   │   │   │   ├── dashboard/         # Dashboard components
+│   │   │   │   │   ├── RecentActivity.tsx
+│   │   │   │   │   └── StatsGrid.tsx
+│   │   │   │   │
+│   │   │   │   ├── layout/            # Layout components
+│   │   │   │   │   ├── Layout.tsx
+│   │   │   │   │   ├── Navbar.tsx
+│   │   │   │   │   └── Sidebar.tsx
+│   │   │   │   │
+│   │   │   │   └── members/           # Member management components
+│   │   │   │       ├── MemberDetail.tsx
+│   │   │   │       ├── MemberForm.tsx
+│   │   │   │       └── MemberTable.tsx
+│   │   │   │
+│   │   │   ├── contexts/              # React contexts
+│   │   │   │   ├── AuthContext.tsx
+│   │   │   │   └── ThemeContext.tsx
+│   │   │   │
+│   │   │   ├── features/              # Feature modules with RTK Query APIs
+│   │   │   │   ├── activity/          # Activity tracking
+│   │   │   │   ├── auth/              # Authentication
+│   │   │   │   ├── members/           # Member management
+│   │   │   │   └── ui/                # UI state management
+│   │   │   │
+│   │   │   ├── layouts/               # Page layouts
+│   │   │   │   └── MemberLayout.tsx
+│   │   │   │
+│   │   │   ├── lib/                   # Library code
+│   │   │   │   └── api/               # API client configuration
+│   │   │   │
+│   │   │   ├── pages/                 # Page components
+│   │   │   ├── types/                 # TypeScript type definitions
+│   │   │   └── utils/                 # Utility functions
+│   │   │
+│   │   └── public/                    # Static assets
+│   │
+│   ├── backend/                       # Backend Express application
+│   │   ├── src/
+│   │   │   ├── config/               # Configuration files
+│   │   │   │   ├── database.ts       # Database configuration
+│   │   │   │   └── swagger.ts        # API documentation
+│   │   │   │
+│   │   │   ├── controllers/          # Request handlers
+│   │   │   │   ├── auth.controller.ts
+│   │   │   │   ├── member.controller.ts
+│   │   │   │   └── dashboard.controller.ts
+│   │   │   │
+│   │   │   ├── middleware/           # Express middleware
+│   │   │   │   ├── auth.middleware.ts
+│   │   │   │   ├── error.middleware.ts
+│   │   │   │   └── upload.middleware.ts
+│   │   │   │
+│   │   │   ├── models/               # Database models
+│   │   │   │   ├── member.model.ts
+│   │   │   │   ├── user.model.ts
+│   │   │   │   ├── role.model.ts
+│   │   │   │   └── activity-log.model.ts
+│   │   │   │
+│   │   │   ├── routes/               # API routes
+│   │   │   │   ├── auth.routes.ts
+│   │   │   │   ├── member.routes.ts
+│   │   │   │   └── dashboard.routes.ts
+│   │   │   │
+│   │   │   ├── seed/                 # Database seed data
+│   │   │   │   └── seed.ts
+│   │   │   │
+│   │   │   ├── types/                # TypeScript type definitions
+│   │   │   ├── utils/                # Utility functions
+│   │   │   └── validators/           # Request validation
+│   │   │
+│   │   └── assets/                   # Static assets
+│   │
+│   ├── app-e2e/                      # Frontend E2E tests
+│   └── backend-e2e/                  # Backend E2E tests
+│
+├── libs/                             # Shared libraries
+├── tools/                            # Build and development tools
+└── package.json                      # Project dependencies and scripts
 ```
 
-For example:
+## 🛠️ Prerequisites
 
-```sh
-npx nx build myproject
+- Node.js (v18 or later)
+- pnpm (v9 or later)
+- Git
+
+## 🚀 Getting Started
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/regis-track.git
+   cd regis-track
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+### Development
+
+To start the development servers:
+
+1. Start the backend server:
+   ```bash
+   nx serve backend
+   ```
+
+2. In a separate terminal, start the frontend development server:
+   ```bash
+   nx serve app
+   ```
+
+The application will be available at `http://localhost:4200` by default.
+
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+# Run all unit tests
+pnpm test
+
+# Run tests for a specific project
+nx test app
+nx test backend
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### E2E Tests
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# Run frontend E2E tests
+nx e2e app-e2e
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+# Run backend E2E tests
+nx e2e backend-e2e
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+## 🏗️ Build
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+To build the applications for production:
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```bash
+# Build both frontend and backend
+nx run-many --target=build --all
+
+# Or build individually
+nx build app
+nx build backend
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+## 🔧 Code Quality
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Lint the code:
+  ```bash
+  nx lint
+  ```
 
-## Set up CI!
+- Format the code:
+  ```bash
+  nx format:write
+  ```
 
-### Step 1
+## 🤝 Contributing
 
-To connect to Nx Cloud, run the following command:
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-```sh
-npx nx connect
-```
+## 📄 License
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/licenses/MIT) for details.
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🙏 Acknowledgments
 
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Built with [Nx](https://nx.dev)
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Express](https://expressjs.com/)
+- And all other amazing open-source projects used in this project
