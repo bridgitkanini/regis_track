@@ -148,6 +148,7 @@ RegisTrack is a modern web application built with React, TypeScript, and Node.js
 
 1. Start the backend server in development mode:
    ```bash
+   brew services start mongodb-community
    npx nx serve backend
    ```
    The backend will be available at `http://localhost:3000` by default.

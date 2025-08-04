@@ -1,11 +1,16 @@
 import { connect } from 'mongoose';
 import dotenv from 'dotenv';
 import { Role, User, Member, ActivityLog } from '../models';
-import bcrypt from 'bcrypt';
-
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/registrack';
+interface RoleDocument {
+  _id: any; // MongoDB ID
+  name: string;
+  permissions: string[];
+}
+
+const MONGODB_URI =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/registrack';
 
 const roles = [
   {
@@ -24,11 +29,7 @@ const roles = [
   },
   {
     name: 'user',
-    permissions: [
-      'members:read',
-      'members:create',
-      'members:update',
-    ],
+    permissions: ['members:read', 'members:create', 'members:update'],
   },
 ];
 
@@ -74,47 +75,73 @@ const members = [
   },
 ];
 
+const clearExistingData = async () => {
+  console.log('Clearing existing data...');
+  await Promise.all([
+    User.deleteMany({}),
+    Member.deleteMany({}),
+    ActivityLog.deleteMany({}),
+  ]);
+};
+
+const seedRoles = async (): Promise<RoleDocument[]> => {
+  console.log('Seeding roles...');
+
+  const existingRoles = (await Role.find({
+    name: { $in: ['admin', 'user'] },
+  })) as unknown as RoleDocument[];
+
+  const existingRoleNames = existingRoles.map((role) => role.name);
+  const rolesToCreate = roles.filter(
+    (role) => !existingRoleNames.includes(role.name)
+  );
+
+  if (rolesToCreate.length > 0) {
+    const createdRoles = (await Role.insertMany(
+      rolesToCreate
+    )) as unknown as RoleDocument[];
+    console.log(`Created ${createdRoles.length} roles`);
+    return [...existingRoles, ...createdRoles];
+  } else {
+    console.log('Using existing roles');
+    return existingRoles;
+  }
+};
+
 const seedDatabase = async () => {
   try {
-    // Connect to MongoDB
     await connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Clear existing data
-    console.log('Clearing existing data...');
-    await Promise.all([
-      ActivityLog.deleteMany({}),
-      Member.deleteMany({}),
-      User.deleteMany({}),
-      Role.deleteMany({}),
-    ]);
+    await clearExistingData();
 
-    console.log('Seeding roles...');
-    const createdRoles = await Role.insertMany(roles);
-    console.log(`Created ${createdRoles.length} roles`);
+    // Get or create roles
+    const rolesInDb = await seedRoles();
 
-    console.log('Seeding users...');
-    const createdUsers = await Promise.all(
-      users.map(async (userData) => {
-        const role = createdRoles.find((r) => r.name === userData.role);
-        if (!role) {
-          throw new Error(`Role ${userData.role} not found`);
+    // Update the roles array with the ones from the database
+    const updatedRoles = roles.map(
+      (role) =>
+        rolesInDb.find((r) => r.name === role.name) || {
+          ...role,
+          _id: role.name,
         }
+    ) as RoleDocument[];
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(userData.password, salt);
-
-        const user = new User({
-          username: userData.username,
-          email: userData.email,
-          password: hashedPassword,
+    // Now seed users with the updated roles
+    console.log('Seeding users...');
+    const createdUsers = await User.insertMany(
+      users.map((user) => {
+        const role = updatedRoles.find((r) => r.name === user.role);
+        if (!role) {
+          throw new Error(`Role ${user.role} not found`);
+        }
+        return {
+          ...user,
           role: role._id,
-          isActive: true,
-        });
-
-        return user.save();
+        };
       })
     );
+
     console.log(`Created ${createdUsers.length} users`);
 
     console.log('Seeding members...');
@@ -147,7 +174,11 @@ const seedDatabase = async () => {
         collectionName: 'Member',
         documentId: createdMembers[0]._id,
         userId: createdUsers[0]._id,
-        changes: { firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' },
+        changes: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john.doe@example.com',
+        },
       },
       {
         action: 'login',
@@ -168,5 +199,9 @@ const seedDatabase = async () => {
   }
 };
 
-// Run the seed function
-seedDatabase();
+// Run the seed function if this file is executed directly
+if (require.main === module) {
+  seedDatabase().catch(console.error);
+}
+
+export { seedDatabase };
