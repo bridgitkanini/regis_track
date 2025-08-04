@@ -6,8 +6,8 @@ import {
   Routes,
   Route,
   Navigate,
-  Outlet,
 } from 'react-router-dom';
+import { useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginForm } from './components/auth/LoginForm';
@@ -99,11 +99,19 @@ function App() {
                   </Route>
 
                   <Route path="profile" element={<Profile />} />
-                  <Route path="settings" element={<Settings />} />
+                  <Route
+                    path="settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Route>
 
                 {/* 404 - Catch all */}
-                <Route path="*" element={<NotFound />} />
+                {/* Catch all route */}
+                <Route path="*" element={<Navigate to="/404" replace />} />
               </Routes>
             </Router>
           </AuthProvider>

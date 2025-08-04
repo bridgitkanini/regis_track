@@ -15,4 +15,5 @@ ignoredBuiltDependencies:
   - nx
 
 onlyBuiltDependencies:
+  - '@scarf/scarf'
   - unrs-resolver

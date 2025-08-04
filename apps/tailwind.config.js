@@ -1,8 +1,15 @@
-const { createGlobPatternsForDependencies } = require('@nx/react/tailwind');
-const { join } = require('path');
+import { createGlobPatternsForDependencies } from '@nx/react/tailwind';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import animate from 'tailwindcss-animate';
+import typography from '@tailwindcss/typography';
+import forms from '@tailwindcss/forms';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const config = {
   darkMode: 'class', // Enable dark mode with class strategy
   content: [
     join(
@@ -105,5 +112,7 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [animate, typography, forms],
 };
+
+export default config;
