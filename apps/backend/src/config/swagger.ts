@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { version } from '../../package.json';
+import path from 'path';
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -118,7 +119,16 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ['./src/routes/*.ts', './src/models/*.ts', './src/controllers/*.ts'],
+  // Use absolute paths that work from the compiled location
+  apis: [
+    path.join(__dirname, '../routes/*.ts'),
+    path.join(__dirname, '../models/*.ts'), 
+    path.join(__dirname, '../controllers/*.ts'),
+    // Also include the source files for development
+    path.join(process.cwd(), 'apps/backend/src/routes/*.ts'),
+    path.join(process.cwd(), 'apps/backend/src/models/*.ts'),
+    path.join(process.cwd(), 'apps/backend/src/controllers/*.ts'),
+  ],
 };
 
 export const specs = swaggerJsdoc(options);

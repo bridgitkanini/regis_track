@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.NX_API_URL || 'http://localhost:3333';
+const API_BASE_URL = process.env.NX_API_URL || 'http://localhost:3000';
 
 // Create axios instance with base URL and credentials support
 const apiClient: AxiosInstance = axios.create({

@@ -1,14 +1,11 @@
 packages:
-  # All packages in direct subdirs of packages/
-  - 'apps/*'
-  - 'libs/*'
-  # Exclude test directories
+  - apps/*
+  - libs/*
   - '!**/test/**'
   - '!**/tests/**'
   - '!**/__tests__/**'
   - '!**/e2e/**'
 
-# Ignore build scripts for these packages to prevent postinstall issues
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - '@swc/core'
@@ -16,3 +13,6 @@ ignoredBuiltDependencies:
   - core-js-pure
   - esbuild
   - nx
+
+onlyBuiltDependencies:
+  - unrs-resolver

@@ -6,20 +6,18 @@
   "tags": [],
   "targets": {
     "serve": {
-      "continuous": true,
-      "executor": "@nx/js:node",
+      "executor": "nx:run-commands",
       "defaultConfiguration": "development",
-      "dependsOn": ["build"],
       "options": {
-        "buildTarget": "backend:build",
-        "runBuildTargetDependencies": false
+        "command": "node apps/backend/dist/main.js",
+        "cwd": "{workspaceRoot}"
       },
       "configurations": {
         "development": {
-          "buildTarget": "backend:build:development"
+          "command": "node apps/backend/dist/main.js"
         },
         "production": {
-          "buildTarget": "backend:build:production"
+          "command": "NODE_ENV=production node apps/backend/dist/main.js"
         }
       }
     },

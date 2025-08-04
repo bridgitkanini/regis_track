@@ -40,43 +40,66 @@ if (process.env.NODE_ENV === 'development') {
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
-// Serve Swagger UI
+// ===========================================
+// IMPORTANT: Individual routes MUST come BEFORE the main routes
+// ===========================================
+
+// Swagger UI setup - BEFORE main routes
 const swaggerOptions = {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: 'RegisTrack API Documentation',
 };
 
-// Serve Swagger UI at /swagger
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
-// Serve Swagger JSON
+// Swagger JSON endpoint
 app.get('/swagger.json', (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(specs);
 });
 
-// Debug route to check if the server is running
+// Test endpoint - BEFORE main routes
 app.get('/test', (req: Request, res: Response) => {
-  res.send('Test route is working!');
+  res.json({ message: 'Test route is working!', timestamp: new Date().toISOString() });
 });
 
-// API routes - mount after other routes to avoid conflicts
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({ 
+    message: 'RegisTrack API Server', 
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      swagger: '/swagger',
+      test: '/test',
+      api: '/api'
+    }
+  });
+});
+
+// ===========================================
+// Mount API routes - These come AFTER individual routes
+// ===========================================
 app.use('/', routes);
 
-// Handle 404
+// ===========================================
+// Error handling - MUST be last
+// ===========================================
+
+// Handle 404 - This catches anything that didn't match above
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: 'Not Found',
     error: {
       statusCode: 404,
-      message: 'The requested resource was not found',
+      message: `The requested resource '${req.originalUrl}' was not found`,
     },
   });
 });
 
-// Global error handler
+// Global error handler - MUST be last
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   // Default error status and message
   let statusCode = err.statusCode || 500;
@@ -110,8 +133,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Start server
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`);
-  console.log(`API Documentation: http://localhost:${port}/swagger`);
+  console.log('🚀 =================================');
+  console.log(`🚀 Server running on: http://localhost:${port}`);
+  console.log(`📚 API Documentation: http://localhost:${port}/swagger`);
+  console.log(`🧪 Test endpoint: http://localhost:${port}/test`);
+  console.log(`💊 Health check: http://localhost:${port}/health`);
+  console.log('🚀 =================================');
 });
 
 // Handle unhandled promise rejections

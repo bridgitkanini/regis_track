@@ -109,7 +109,7 @@ export const MemberDetail = () => {
   const fullName = `${member.firstName} ${member.lastName}`;
   const profileImage = member.profilePicture
     ? `${
-        process.env.NX_API_URL || 'http://localhost:3333'
+        process.env.NX_API_URL || 'http://localhost:3000'
       }/uploads/profile-pictures/${member.profilePicture}`
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(
         fullName

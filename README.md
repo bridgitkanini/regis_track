@@ -119,11 +119,10 @@ RegisTrack is a modern web application built with React, TypeScript, and Node.js
 
 ## 🛠️ Prerequisites
 
-- Node.js (v18 or later)
-- pnpm (v9 or later)
+- Node.js (v16 or later recommended)
+- pnpm (v8 or later)
+- MongoDB (v6 or later) running locally
 - Git
-
-## 🚀 Getting Started
 
 ### Installation
 
@@ -138,21 +137,37 @@ RegisTrack is a modern web application built with React, TypeScript, and Node.js
    pnpm install
    ```
 
-### Development
+3. Set up environment variables:
+   - Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Update the `.env` file with your configuration (MongoDB connection, JWT secret, etc.)
 
-To start the development servers:
+### Running the Application
 
-1. Start the backend server:
+1. Start the backend server in development mode:
    ```bash
-   nx serve backend
+   npx nx serve backend
    ```
+   The backend will be available at `http://localhost:3000` by default.
 
 2. In a separate terminal, start the frontend development server:
    ```bash
-   nx serve app
+   npx nx serve app
    ```
+   The frontend will be available at `http://localhost:4200` by default.
 
-The application will be available at `http://localhost:4200` by default.
+### Database Setup
+
+Make sure you have MongoDB running locally on the default port (27017) or update the `MONGODB_URI` in your `.env` file to point to your MongoDB instance.
+
+### First-Time Setup
+
+If this is your first time setting up the application, you may need to seed the database with initial data (if applicable):
+```bash
+nx run backend:seed
+```
 
 ## 🧪 Testing
 
@@ -163,18 +178,18 @@ The application will be available at `http://localhost:4200` by default.
 pnpm test
 
 # Run tests for a specific project
-nx test app
-nx test backend
+npx nx test app
+npx nx test backend
 ```
 
 ### E2E Tests
 
 ```bash
 # Run frontend E2E tests
-nx e2e app-e2e
+npx nx e2e app-e2e
 
 # Run backend E2E tests
-nx e2e backend-e2e
+npx nx e2e backend-e2e
 ```
 
 ## 🏗️ Build
@@ -183,23 +198,23 @@ To build the applications for production:
 
 ```bash
 # Build both frontend and backend
-nx run-many --target=build --all
+npx nx run-many --target=build --all
 
 # Or build individually
-nx build app
-nx build backend
+npx nx build app
+npx nx build backend
 ```
 
 ## 🔧 Code Quality
 
 - Lint the code:
   ```bash
-  nx lint
+  npx nx lint
   ```
 
 - Format the code:
   ```bash
-  nx format:write
+  npx nx format:write
   ```
 
 ## 🤝 Contributing
