@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useRegisterMutation } from '../../features/auth/authApi';
 import { loginSuccess } from '../../features/auth/authSlice';
@@ -10,11 +9,20 @@ import { useApiError } from '../../hooks/useApiError';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Loader } from '../common/Loader';
+import { RouterLink } from '../common/RouterLink';
 
 // Form validation schema
 const registerSchema = yup.object().shape({
   firstName: yup.string().required('First name is required'),
   lastName: yup.string().required('Last name is required'),
+  username: yup
+    .string()
+    .required('Username is required')
+    .min(3, 'Username must be at least 3 characters')
+    .matches(
+      /^[a-zA-Z0-9_]+$/,
+      'Username can only contain letters, numbers, and underscores'
+    ),
   email: yup
     .string()
     .email('Please enter a valid email')
@@ -39,7 +47,7 @@ export const RegisterForm = () => {
   const [register, { error: apiError, isLoading }] = useRegisterMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  useApiError(apiError);
+  const { handleError } = useApiError();
 
   const {
     register: formRegister,
@@ -52,12 +60,16 @@ export const RegisterForm = () => {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       const { confirmPassword, ...userData } = data;
-      const response = await register(userData).unwrap();
+      const response = await register({
+        ...userData,
+        role: 'user', // Default role for new users
+        isActive: true,
+      }).unwrap();
+
       dispatch(loginSuccess(response));
       navigate('/dashboard');
     } catch (err) {
-      // Error is already handled by useApiError
-      console.error('Registration error:', err);
+      handleError(err, 'Registration failed');
     }
   };
 
@@ -69,12 +81,12 @@ export const RegisterForm = () => {
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Or{' '}
-          <Link
+          <RouterLink
             to="/login"
             className="font-medium text-primary hover:text-primary/80"
           >
             sign in to your existing account
-          </Link>
+          </RouterLink>
         </p>
       </div>
 
@@ -102,6 +114,17 @@ export const RegisterForm = () => {
                   {...formRegister('lastName')}
                 />
               </div>
+            </div>
+
+            <div>
+              <Input
+                id="username"
+                type="text"
+                label="Username"
+                autoComplete="username"
+                error={errors.username?.message}
+                {...formRegister('username')}
+              />
             </div>
 
             <div>

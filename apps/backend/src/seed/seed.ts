@@ -1,10 +1,14 @@
-import { connect } from 'mongoose';
+import { connect, connection } from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
+import bcrypt from 'bcrypt';
 import { Role, User, Member, ActivityLog } from '../models';
-dotenv.config();
+
+// Load environment variables from the .env file in the backend directory
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 interface RoleDocument {
-  _id: any; // MongoDB ID
+  _id: any;
   name: string;
   permissions: string[];
 }
@@ -33,18 +37,21 @@ const roles = [
   },
 ];
 
-const users = [
+// Define user data without hashed passwords
+const userData = [
   {
     username: 'admin',
     email: 'admin@example.com',
-    password: 'password123',
+    password: 'admin123', // Will be hashed later
     role: 'admin',
+    isActive: true,
   },
   {
     username: 'user1',
     email: 'user1@example.com',
-    password: 'password123',
+    password: 'user1234', // Will be hashed later
     role: 'user',
+    isActive: true,
   },
 ];
 
@@ -86,10 +93,9 @@ const clearExistingData = async () => {
 
 const seedRoles = async (): Promise<RoleDocument[]> => {
   console.log('Seeding roles...');
-
-  const existingRoles = (await Role.find({
+  const existingRoles = await Role.find({
     name: { $in: ['admin', 'user'] },
-  })) as unknown as RoleDocument[];
+  });
 
   const existingRoleNames = existingRoles.map((role) => role.name);
   const rolesToCreate = roles.filter(
@@ -97,9 +103,7 @@ const seedRoles = async (): Promise<RoleDocument[]> => {
   );
 
   if (rolesToCreate.length > 0) {
-    const createdRoles = (await Role.insertMany(
-      rolesToCreate
-    )) as unknown as RoleDocument[];
+    const createdRoles = await Role.insertMany(rolesToCreate);
     console.log(`Created ${createdRoles.length} roles`);
     return [...existingRoles, ...createdRoles];
   } else {
@@ -108,94 +112,88 @@ const seedRoles = async (): Promise<RoleDocument[]> => {
   }
 };
 
-const seedDatabase = async () => {
+const seedUsers = async (roles: RoleDocument[]) => {
+  console.log('Seeding users...');
+
+  // Hash passwords before creating users
+  const usersWithHashedPasswords = await Promise.all(
+    userData.map(async (user) => ({
+      ...user,
+      password: await bcrypt.hash(user.password, 10),
+    }))
+  );
+
+  const createdUsers = await User.insertMany(
+    usersWithHashedPasswords.map((user) => {
+      const role = roles.find((r) => r.name === user.role);
+      if (!role) {
+        throw new Error(`Role ${user.role} not found`);
+      }
+      return {
+        username: user.username,
+        email: user.email,
+        password: user.password,
+        role: role._id,
+        isActive: user.isActive,
+      };
+    })
+  );
+
+  console.log(`Created ${createdUsers.length} users`);
+  return createdUsers;
+};
+
+const seedMembers = async () => {
+  console.log('Seeding members...');
+  const createdMembers = await Member.insertMany(members);
+  console.log(`Created ${createdMembers.length} members`);
+  return createdMembers;
+};
+
+const seedActivityLogs = async () => {
+  console.log('Seeding activity logs...');
+  const logs = [
+    {
+      action: 'User logged in',
+      details: 'User successfully logged in',
+      level: 'info',
+    },
+    {
+      action: 'User registered',
+      details: 'New user registration',
+      level: 'info',
+    },
+    {
+      action: 'Profile updated',
+      details: 'User updated their profile information',
+      level: 'info',
+    },
+  ];
+
+  const createdLogs = await ActivityLog.insertMany(logs);
+  console.log(`Created ${createdLogs.length} activity logs`);
+  return createdLogs;
+};
+
+export const seedDatabase = async () => {
   try {
     await connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
     await clearExistingData();
 
-    // Get or create roles
     const rolesInDb = await seedRoles();
-
-    // Update the roles array with the ones from the database
-    const updatedRoles = roles.map(
-      (role) =>
-        rolesInDb.find((r) => r.name === role.name) || {
-          ...role,
-          _id: role.name,
-        }
-    ) as RoleDocument[];
-
-    // Now seed users with the updated roles
-    console.log('Seeding users...');
-    const createdUsers = await User.insertMany(
-      users.map((user) => {
-        const role = updatedRoles.find((r) => r.name === user.role);
-        if (!role) {
-          throw new Error(`Role ${user.role} not found`);
-        }
-        return {
-          ...user,
-          role: role._id,
-        };
-      })
-    );
-
-    console.log(`Created ${createdUsers.length} users`);
-
-    console.log('Seeding members...');
-    const createdMembers = await Promise.all(
-      members.map((memberData, index) => {
-        // Assign members to users in a round-robin fashion
-        const createdBy = createdUsers[index % createdUsers.length]._id;
-
-        const member = new Member({
-          ...memberData,
-          createdBy,
-        });
-
-        return member.save();
-      })
-    );
-    console.log(`Created ${createdMembers.length} members`);
-
-    console.log('Seeding activity logs...');
-    const activities = [
-      {
-        action: 'create',
-        collectionName: 'User',
-        documentId: createdUsers[0]._id,
-        userId: createdUsers[0]._id,
-        changes: { username: 'admin', email: 'admin@example.com' },
-      },
-      {
-        action: 'create',
-        collectionName: 'Member',
-        documentId: createdMembers[0]._id,
-        userId: createdUsers[0]._id,
-        changes: {
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-        },
-      },
-      {
-        action: 'login',
-        collectionName: 'User',
-        documentId: createdUsers[0]._id,
-        userId: createdUsers[0]._id,
-      },
-    ];
-
-    await ActivityLog.insertMany(activities);
-    console.log(`Created ${activities.length} activity logs`);
+    await seedUsers(rolesInDb);
+    await seedMembers();
+    await seedActivityLogs();
 
     console.log('Database seeded successfully!');
-    process.exit(0);
   } catch (error) {
     console.error('Error seeding database:', error);
-    process.exit(1);
+    throw error;
+  } finally {
+    // Close the connection after seeding
+    await connection.close();
   }
 };
 
@@ -203,5 +201,3 @@ const seedDatabase = async () => {
 if (require.main === module) {
   seedDatabase().catch(console.error);
 }
-
-export { seedDatabase };
