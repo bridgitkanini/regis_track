@@ -3,24 +3,27 @@
 [![Nx](https://img.shields.io/nx/r/regis-track)](https://nx.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-RegisTrack is a modern web application built with React, TypeScript, and Node.js, using Nx as the build system. The project follows a monorepo structure with separate frontend and backend applications.
+RegisTrack is a modern web application for managing member registrations and tracking activities. Built with a React frontend and Node.js/Express backend, it provides a comprehensive solution for member management and activity tracking.
 
 ## 🚀 Features
 
-- **Frontend**: Built with React, TypeScript, and Vite
-- **Backend**: Node.js with Express
+- **Frontend**: Built with React 19, TypeScript, and Vite
+- **Backend**: Node.js with Express and TypeScript
+- **Database**: MongoDB with Mongoose ODM
 - **Styling**: Tailwind CSS with Headless UI components
+- **Routing**: React Router v7 for client-side navigation
 - **State Management**: React Query for server state
 - **Form Handling**: React Hook Form with validation
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
+- **API Documentation**: Swagger/OpenAPI support
+- **Testing**: Jest for unit tests, Playwright for E2E tests
 - **Code Quality**: ESLint and Prettier for consistent code style
 
-## 📦 Project Structure
+## 🏗️ Project Structure
 
 ```
 .
 ├── apps/
-│   ├── app/                            # Frontend React application
+│   ├── app/                      # Frontend React application
 │   │   ├── src/
 │   │   │   ├── app/                   # App configuration and store
 │   │   │   │   └── store.ts           # Redux store configuration
@@ -73,66 +76,39 @@ RegisTrack is a modern web application built with React, TypeScript, and Node.js
 │   │   │
 │   │   └── public/                    # Static assets
 │   │
-│   ├── backend/                       # Backend Express application
+│   ├── backend/                 # Backend Express application
 │   │   ├── src/
-│   │   │   ├── config/               # Configuration files
-│   │   │   │   ├── database.ts       # Database configuration
-│   │   │   │   └── swagger.ts        # API documentation
-│   │   │   │
-│   │   │   ├── controllers/          # Request handlers
-│   │   │   │   ├── auth.controller.ts
-│   │   │   │   ├── member.controller.ts
-│   │   │   │   └── dashboard.controller.ts
-│   │   │   │
-│   │   │   ├── middleware/           # Express middleware
-│   │   │   │   ├── auth.middleware.ts
-│   │   │   │   ├── error.middleware.ts
-│   │   │   │   └── upload.middleware.ts
-│   │   │   │
-│   │   │   ├── models/               # Database models
-│   │   │   │   ├── member.model.ts
-│   │   │   │   ├── user.model.ts
-│   │   │   │   ├── role.model.ts
-│   │   │   │   └── activity-log.model.ts
-│   │   │   │
-│   │   │   ├── routes/               # API routes
-│   │   │   │   ├── auth.routes.ts
-│   │   │   │   ├── member.routes.ts
-│   │   │   │   └── dashboard.routes.ts
-│   │   │   │
-│   │   │   ├── seed/                 # Database seed data
-│   │   │   │   └── seed.ts
-│   │   │   │
-│   │   │   ├── types/                # TypeScript type definitions
-│   │   │   ├── utils/                # Utility functions
-│   │   │   └── validators/           # Request validation
-│   │   │
-│   │   └── assets/                   # Static assets
+│   │   │   ├── config/         # Configuration files
+│   │   │   ├── controllers/     # Request handlers
+│   │   │   ├── middleware/     # Express middleware
+│   │   │   ├── models/         # Database models
+│   │   │   ├── routes/         # API routes
+│   │   │   └── services/       # Business logic
 │   │
-│   ├── app-e2e/                      # Frontend E2E tests
-│   └── backend-e2e/                  # Backend E2E tests
-│
-├── libs/                             # Shared libraries
-├── tools/                            # Build and development tools
-└── package.json                      # Project dependencies and scripts
+│   ├── app-e2e/                # Frontend E2E tests
+│   └── backend-e2e/            # Backend E2E tests
 ```
 
 ## 🛠️ Prerequisites
 
-- Node.js (v16 or later recommended)
+- Node.js (v18 or later recommended)
 - pnpm (v8 or later)
 - MongoDB (v6 or later) running locally
 - Git
 
+## 🚀 Getting Started
+
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/regis-track.git
    cd regis-track
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
@@ -146,28 +122,110 @@ RegisTrack is a modern web application built with React, TypeScript, and Node.js
 
 ### Running the Application
 
-1. Start the backend server in development mode:
+1. Start MongoDB (if not already running):
+
    ```bash
+   # On macOS with Homebrew
    brew services start mongodb-community
+
+   # Or using Docker
+   docker run --name mongodb -p 27017:27017 -d mongo:latest
+   ```
+
+2. Start the backend server in development mode:
+
+   ```bash
    npx nx serve backend
    ```
+
    The backend will be available at `http://localhost:3000` by default.
 
-2. In a separate terminal, start the frontend development server:
+   - API documentation: `http://localhost:3000/api-docs`
+
+3. In a separate terminal, start the frontend development server:
    ```bash
    npx nx serve app
    ```
    The frontend will be available at `http://localhost:4200` by default.
 
-### Database Setup
+## 🎯 Usage Guide
 
-Make sure you have MongoDB running locally on the default port (27017) or update the `MONGODB_URI` in your `.env` file to point to your MongoDB instance.
+### Authentication
 
-### First-Time Setup
+1. **Registration**
 
-If this is your first time setting up the application, you may need to seed the database with initial data (if applicable):
+   - Navigate to the registration page
+   - Fill in your details (name, email, password)
+   - Submit the form to create a new account
+
+2. **Login**
+   - Go to the login page
+   - Enter your email and password
+   - Click "Sign In" to access your dashboard
+
+### Dashboard
+
+- View an overview of member statistics and recent activities
+- Quick access to important features via the sidebar
+- Responsive design works on both desktop and mobile devices
+
+### Member Management
+
+1. **View All Members**
+
+   - Navigate to "Members" in the sidebar
+   - Browse the list of registered members
+   - Use search and filters to find specific members
+
+2. **Add New Member**
+
+   - Click the "Add Member" button
+   - Fill in the member details
+   - Submit the form to add the member
+
+3. **Edit Member**
+
+   - Click on a member to view details
+   - Click the "Edit" button
+   - Update the necessary information
+   - Save your changes
+
+4. **Delete Member**
+   - Locate the member in the list
+   - Click the delete icon (🗑️)
+   - Confirm the deletion
+
+### User Profile
+
+- Click on your profile picture in the top-right corner
+- Select "Profile" to view and edit your account information
+- Update your password or personal details as needed
+
+### Settings
+
+- Access application settings from the user menu
+- Configure preferences and notification settings
+- Manage account security options
+
+## 🔍 API Documentation
+
+For developers integrating with the RegisTrack API:
+
+1. Access the interactive API documentation at `http://localhost:3000/api-docs` when the backend is running
+2. The API follows RESTful principles
+3. All API endpoints require authentication except for login/registration
+4. Include the JWT token in the `Authorization` header for authenticated requests
+
+### Example API Request
+
 ```bash
-nx run backend:seed
+# Get current user profile
+curl -X GET 'http://localhost:3000/api/users/me' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+
+# Get all members
+curl -X GET 'http://localhost:3000/api/members' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
 ```
 
 ## 🧪 Testing
@@ -199,41 +257,24 @@ To build the applications for production:
 
 ```bash
 # Build both frontend and backend
-npx nx run-many --target=build --all
+pnpm build
 
 # Or build individually
 npx nx build app
 npx nx build backend
 ```
 
-## 🔧 Code Quality
+The production builds will be available in the `dist/` directory of each app.
 
-- Lint the code:
-  ```bash
-  npx nx lint
-  ```
+## 📚 Documentation
 
-- Format the code:
-  ```bash
-  npx nx format:write
-  ```
+- API documentation is available at `/api-docs` when the backend is running
+- Component documentation is available in the source code using JSDoc
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/licenses/MIT) for details.
-
-## 🙏 Acknowledgments
-
-- Built with [Nx](https://nx.dev)
-- [React](https://reactjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Express](https://expressjs.com/)
-- And all other amazing open-source projects used in this project
