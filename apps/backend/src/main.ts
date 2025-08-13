@@ -20,11 +20,26 @@ const server = createServer(app);
 // Connect to MongoDB
 connectDB();
 
-// Set security HTTP headers
-app.use(helmet());
+// TEMPORARILY DISABLE HELMET
+// app.use(helmet());
 
-// Enable CORS
-app.use(cors());
+// SIMPLE CORS CONFIGURATION FOR DEBUGGING
+console.log('🔧 Starting server with simplified CORS...');
+
+app.use(
+  cors({
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false, // TEMPORARILY DISABLED
+  })
+);
+
+// Add debugging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`📨 ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+  next();
+});
 
 // Parse JSON request body
 app.use(express.json({ limit: '10kb' }));
@@ -39,10 +54,6 @@ if (process.env.NODE_ENV === 'development') {
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
-
-// ===========================================
-// IMPORTANT: Individual routes MUST come BEFORE the main routes
-// ===========================================
 
 // Swagger UI setup - BEFORE main routes
 const swaggerOptions = {
@@ -61,34 +72,33 @@ app.get('/swagger.json', (req: Request, res: Response) => {
 
 // Test endpoint - BEFORE main routes
 app.get('/test', (req: Request, res: Response) => {
-  res.json({ message: 'Test route is working!', timestamp: new Date().toISOString() });
+  console.log('🧪 Test endpoint hit');
+  res.json({
+    message: 'Test route is working!',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
-  res.json({ 
-    message: 'RegisTrack API Server', 
+  res.json({
+    message: 'RegisTrack API Server',
     version: '1.0.0',
     endpoints: {
       health: '/health',
       swagger: '/swagger',
       test: '/test',
-      api: '/api'
-    }
+      api: '/api',
+    },
   });
 });
 
-// ===========================================
 // Mount API routes - These come AFTER individual routes
-// ===========================================
 app.use('/', routes);
-
-// ===========================================
-// Error handling - MUST be last
-// ===========================================
 
 // Handle 404 - This catches anything that didn't match above
 app.use((req: Request, res: Response) => {
+  console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     success: false,
     message: 'Not Found',
@@ -115,7 +125,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   }
 
   // Log the error for debugging
-  console.error(`[${new Date().toISOString()}] ${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
+  console.error(
+    `[${new Date().toISOString()}] ${statusCode} - ${message} - ${
+      req.originalUrl
+    } - ${req.method} - ${req.ip}`
+  );
   console.error(err.stack);
 
   // Send error response

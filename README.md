@@ -1,9 +1,25 @@
 # RegisTrack
 
-[![Nx](https://img.shields.io/nx/r/regis-track)](https://nx.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## Table of Contents
 
-RegisTrack is a modern web application for managing member registrations and tracking activities. Built with a React frontend and Node.js/Express backend, it provides a comprehensive solution for member management and activity tracking.
+1. [Project Overview](#project-overview)
+2. [Features](#-features)
+3. [Technology Stack](#technology-stack)
+4. [Project Structure](#-project-structure)
+5. [Data Models](#data-models)
+6. [API Services](#api-services)
+7. [Error Handling](#error-handling)
+8. [State Management](#state-management)
+9. [User Interface](#user-interface)
+10. [Component Architecture](#component-architecture)
+11. [Development Practices](#development-practices)
+12. [Installation & Setup](#-installation--setup)
+13. [Usage Guide](#-usage-guide)
+
+## Project Overview
+
+RegisTrack is a comprehensive member registration and activity tracking system designed to streamline member management for organizations. The application provides a modern, responsive interface built with React and TypeScript, powered by a robust Node.js/Express backend with MongoDB as the database.
+
 
 ## 🚀 Features
 
@@ -17,6 +33,42 @@ RegisTrack is a modern web application for managing member registrations and tra
 - **API Documentation**: Swagger/OpenAPI support
 - **Testing**: Jest for unit tests, Playwright for E2E tests
 - **Code Quality**: ESLint and Prettier for consistent code style
+- **Member Management**: Create, view, update, and delete member records with detailed profiles
+- **Activity Tracking**: Monitor and log all member activities and system events
+- **User Authentication**: Secure login and role-based access control (RBAC)
+- **Dashboard Analytics**: Visualize member statistics and activity trends
+- **Responsive Design**: Fully responsive interface that works on all devices
+- **API-First Architecture**: RESTful API for easy integration with other systems
+- **Activity Logging**: Comprehensive audit trail of all system activities
+- **Search & Filtering**: Advanced search and filtering capabilities for members and activities
+
+
+## Technology Stack
+
+### Frontend
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite
+- **State Management**: Redux Toolkit & React Query
+- **UI Components**: Headless UI with custom Tailwind CSS components
+- **Form Handling**: React Hook Form with Yup validation
+- **Routing**: React Router v7
+- **Testing**: Jest & Playwright
+
+### Backend
+- **Runtime**: Node.js with Express
+- **Language**: TypeScript
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **API Documentation**: Swagger/OpenAPI
+- **Logging**: Custom activity logger middleware
+- **Validation**: Express Validator
+
+### Development Tools
+- **Package Manager**: pnpm
+- **Linting**: ESLint with TypeScript support
+- **Code Formatting**: Prettier
+- **Version Control**: Git with GitHub
+- **CI/CD**: GitHub Actions (configurable)
 
 ## 🏗️ Project Structure
 
@@ -89,6 +141,163 @@ RegisTrack is a modern web application for managing member registrations and tra
 │   └── backend-e2e/            # Backend E2E tests
 ```
 
+
+## Data Models
+
+### User
+- Authentication details (email, hashed password)
+- Role-based access control
+- Profile information
+- Timestamps for creation and updates
+
+### Member
+- Personal information (name, contact details)
+- Membership status and type
+- Associated activities and events
+- Profile photo storage
+- Custom fields and metadata
+
+### Activity Log
+- Action type and description
+- Associated user and member
+- Timestamp and IP address
+- Request and response data
+- Status and error information
+
+## API Services
+
+### Authentication
+- User registration and login
+- JWT token management
+- Password reset functionality
+- Role-based access control
+
+### Members
+- CRUD operations for member profiles
+- Bulk import/export
+- Advanced search and filtering
+- Photo upload and management
+
+### Dashboard
+- Member statistics and analytics
+- Activity feed and audit logs
+- System health and usage metrics
+
+### Admin
+- User management
+- System configuration
+- Data backup and restore
+
+## Error Handling
+
+- **Client-Side**: Custom error boundaries and toast notifications
+- **Server-Side**: Centralized error handling middleware
+- **Validation**: Request validation with meaningful error messages
+- **Logging**: Detailed error logging for debugging
+- **Monitoring**: Integration with monitoring tools (configurable)
+
+## State Management
+
+- **Global State**: Redux Toolkit for application-wide state
+- **Server State**: React Query for data fetching and caching
+- **Local State**: React hooks for component-level state
+- **Persistence**: Redux Persist for persisting state across sessions
+- **Optimistic Updates**: For better user experience
+
+## User Interface
+
+### Design System
+
+- **Color Scheme**:
+  - Primary: `#2879fe` (blue) - Main brand color
+  - Text: `#333` - Main text color
+  - Light Text: `#777` - Secondary text
+  - Border: `#e0e0e0` - Border color
+  - Background: `#f5f5f5` - Light background
+  - Error: `#ff4d4f` - Error/validation
+  - Success: `#52c41a` - Success messages
+
+### Core Components
+
+1. **Navbar**
+   - Responsive navigation with mobile menu
+   - User profile and notifications
+   - Quick access to important features
+
+2. **Sidebar**
+   - Main navigation menu
+   - Collapsible sections
+   - Role-based menu items
+
+3. **Data Tables**
+   - Sortable and filterable
+   - Pagination support
+   - Row actions and bulk operations
+
+4. **Forms**
+   - Form validation
+   - Field types for all data needs
+   - Responsive layout
+
+5. **Modals & Dialogs**
+   - Confirmation dialogs
+   - Form modals
+   - Responsive behavior
+
+## Component Architecture
+
+### Page Components
+
+1. **Dashboard** (`/`)
+   - Overview of key metrics
+   - Recent activities
+   - Quick actions
+
+2. **Members** (`/members`)
+   - Member directory
+   - Advanced search and filtering
+   - Bulk operations
+
+3. **Member Detail** (`/members/:id`)
+   - Complete member profile
+   - Activity history
+   - Related records
+
+4. **Settings** (`/settings`)
+   - User preferences
+   - System configuration
+   - Data management
+
+### Shared Components
+
+- **Layout**: Page templates and containers
+- **UI Elements**: Buttons, inputs, modals, etc.
+- **Data Display**: Cards, tables, lists
+- **Feedback**: Loaders, toasts, error states
+- **Navigation**: Breadcrumbs, pagination, tabs
+
+## Development Practices
+
+### Code Organization
+- **Feature-based Structure**: Components grouped by feature
+- **Shared Components**: Reusable UI elements
+- **Type Definitions**: TypeScript interfaces and types
+- **API Services**: Centralized API calls
+- **Hooks**: Custom hooks for reusable logic
+
+### Styling Approach
+- **Tailwind CSS**: Utility-first CSS framework
+- **CSS Modules**: For component-scoped styles
+- **Design Tokens**: Consistent spacing, colors, and typography
+- **Responsive Design**: Mobile-first approach
+
+### Testing Strategy
+- **Unit Tests**: Jest for component and utility testing
+- **Integration Tests**: Component interactions
+- **E2E Tests**: Playwright for user flows
+- **Snapshot Testing**: For UI consistency
+
+
 ## 🛠️ Prerequisites
 
 - Node.js (v18 or later recommended)
@@ -140,7 +349,7 @@ RegisTrack is a modern web application for managing member registrations and tra
 
    The backend will be available at `http://localhost:3000` by default.
 
-   - API documentation: `http://localhost:3000/api-docs`
+   - API documentation: `http://localhost:3000/swagger`
 
 3. In a separate terminal, start the frontend development server:
    ```bash
@@ -211,7 +420,7 @@ RegisTrack is a modern web application for managing member registrations and tra
 
 For developers integrating with the RegisTrack API:
 
-1. Access the interactive API documentation at `http://localhost:3000/api-docs` when the backend is running
+1. Access the interactive API documentation at `http://localhost:3000/swagger` when the backend is running
 2. The API follows RESTful principles
 3. All API endpoints require authentication except for login/registration
 4. Include the JWT token in the `Authorization` header for authenticated requests
@@ -268,7 +477,7 @@ The production builds will be available in the `dist/` directory of each app.
 
 ## 📚 Documentation
 
-- API documentation is available at `/api-docs` when the backend is running
+- API documentation is available at `/swagger` when the backend is running
 - Component documentation is available in the source code using JSDoc
 
 ## 🤝 Contributing
