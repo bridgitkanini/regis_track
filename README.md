@@ -20,18 +20,17 @@
 
 RegisTrack is a comprehensive member registration and activity tracking system designed to streamline member management for organizations. The application provides a modern, responsive interface built with React and TypeScript, powered by a robust Node.js/Express backend with MongoDB as the database.
 
-
 ## 🚀 Features
 
-- **Frontend**: Built with React 19, TypeScript, and Vite
+- **Frontend**: Built with React 18.3.1, TypeScript, and Vite
 - **Backend**: Node.js with Express and TypeScript
 - **Database**: MongoDB with Mongoose ODM
 - **Styling**: Tailwind CSS with Headless UI components
 - **Routing**: React Router v7 for client-side navigation
-- **State Management**: React Query for server state
+- **State Management**: Redux Toolkit & React Query for comprehensive state management
 - **Form Handling**: React Hook Form with validation
 - **API Documentation**: Swagger/OpenAPI support
-- **Testing**: Jest for unit tests, Playwright for E2E tests
+- **Testing**: Vitest for unit tests, Playwright for E2E tests
 - **Code Quality**: ESLint and Prettier for consistent code style
 - **Member Management**: Create, view, update, and delete member records with detailed profiles
 - **Activity Tracking**: Monitor and log all member activities and system events
@@ -42,19 +41,20 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 - **Activity Logging**: Comprehensive audit trail of all system activities
 - **Search & Filtering**: Advanced search and filtering capabilities for members and activities
 
-
 ## Technology Stack
 
 ### Frontend
-- **Framework**: React 19 with TypeScript
+
+- **Framework**: React 18.3.1 with TypeScript
 - **Build Tool**: Vite
-- **State Management**: Redux Toolkit & React Query
+- **State Management**: Redux Toolkit & React Query (@tanstack/react-query)
 - **UI Components**: Headless UI with custom Tailwind CSS components
 - **Form Handling**: React Hook Form with Yup validation
 - **Routing**: React Router v7
-- **Testing**: Jest & Playwright
+- **Testing**: Vitest & Playwright
 
 ### Backend
+
 - **Runtime**: Node.js with Express
 - **Language**: TypeScript
 - **Database**: MongoDB with Mongoose ODM
@@ -64,6 +64,7 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 - **Validation**: Express Validator
 
 ### Development Tools
+
 - **Package Manager**: pnpm
 - **Linting**: ESLint with TypeScript support
 - **Code Formatting**: Prettier
@@ -90,6 +91,9 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 │   │   │   │   │   ├── Button.tsx
 │   │   │   │   │   ├── DropdownMenu.tsx
 │   │   │   │   │   ├── Loader.tsx
+│   │   │   │   │   ├── Badge.tsx
+│   │   │   │   │   ├── Card.tsx
+│   │   │   │   │   ├── Input.tsx
 │   │   │   │   │   └── ...
 │   │   │   │   │
 │   │   │   │   ├── dashboard/         # Dashboard components
@@ -104,7 +108,8 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 │   │   │   │   └── members/           # Member management components
 │   │   │   │       ├── MemberDetail.tsx
 │   │   │   │       ├── MemberForm.tsx
-│   │   │   │       └── MemberTable.tsx
+│   │   │   │       ├── MemberTable.tsx
+│   │   │   │       └── MemberFilters.tsx
 │   │   │   │
 │   │   │   ├── contexts/              # React contexts
 │   │   │   │   ├── AuthContext.tsx
@@ -120,11 +125,19 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 │   │   │   │   └── MemberLayout.tsx
 │   │   │   │
 │   │   │   ├── lib/                   # Library code
-│   │   │   │   └── api/               # API client configuration
+│   │   │   │   ├── api/               # API client configuration
+│   │   │   │   └── queryClient.ts     # React Query configuration
 │   │   │   │
 │   │   │   ├── pages/                 # Page components
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   ├── MembersPage.tsx
+│   │   │   │   ├── Profile.tsx
+│   │   │   │   ├── Settings.tsx
+│   │   │   │   ├── NotFound.tsx
+│   │   │   │   └── Unauthorized.tsx
 │   │   │   ├── types/                 # TypeScript type definitions
-│   │   │   └── utils/                 # Utility functions
+│   │   │   ├── utils/                 # Utility functions
+│   │   │   └── hooks/                 # Custom React hooks
 │   │   │
 │   │   └── public/                    # Static assets
 │   │
@@ -141,16 +154,17 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 │   └── backend-e2e/            # Backend E2E tests
 ```
 
-
 ## Data Models
 
 ### User
+
 - Authentication details (email, hashed password)
 - Role-based access control
 - Profile information
 - Timestamps for creation and updates
 
 ### Member
+
 - Personal information (name, contact details)
 - Membership status and type
 - Associated activities and events
@@ -158,6 +172,7 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 - Custom fields and metadata
 
 ### Activity Log
+
 - Action type and description
 - Associated user and member
 - Timestamp and IP address
@@ -167,23 +182,27 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 ## API Services
 
 ### Authentication
+
 - User registration and login
 - JWT token management
 - Password reset functionality
 - Role-based access control
 
 ### Members
+
 - CRUD operations for member profiles
 - Bulk import/export
 - Advanced search and filtering
 - Photo upload and management
 
 ### Dashboard
+
 - Member statistics and analytics
 - Activity feed and audit logs
 - System health and usage metrics
 
 ### Admin
+
 - User management
 - System configuration
 - Data backup and restore
@@ -199,9 +218,9 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 ## State Management
 
 - **Global State**: Redux Toolkit for application-wide state
-- **Server State**: React Query for data fetching and caching
+- **Server State**: React Query (@tanstack/react-query) for data fetching and caching
 - **Local State**: React hooks for component-level state
-- **Persistence**: Redux Persist for persisting state across sessions
+- **RTK Query**: Integrated API layer for seamless data management
 - **Optimistic Updates**: For better user experience
 
 ## User Interface
@@ -220,21 +239,25 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 ### Core Components
 
 1. **Navbar**
+
    - Responsive navigation with mobile menu
    - User profile and notifications
    - Quick access to important features
 
 2. **Sidebar**
+
    - Main navigation menu
    - Collapsible sections
    - Role-based menu items
 
 3. **Data Tables**
+
    - Sortable and filterable
    - Pagination support
    - Row actions and bulk operations
 
 4. **Forms**
+
    - Form validation
    - Field types for all data needs
    - Responsive layout
@@ -248,17 +271,20 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 
 ### Page Components
 
-1. **Dashboard** (`/`)
+1. **Dashboard** (`/dashboard`)
+
    - Overview of key metrics
    - Recent activities
    - Quick actions
 
 2. **Members** (`/members`)
+
    - Member directory
    - Advanced search and filtering
    - Bulk operations
 
 3. **Member Detail** (`/members/:id`)
+
    - Complete member profile
    - Activity history
    - Related records
@@ -279,24 +305,26 @@ RegisTrack is a comprehensive member registration and activity tracking system d
 ## Development Practices
 
 ### Code Organization
+
 - **Feature-based Structure**: Components grouped by feature
 - **Shared Components**: Reusable UI elements
 - **Type Definitions**: TypeScript interfaces and types
-- **API Services**: Centralized API calls
+- **API Services**: Centralized API calls with RTK Query
 - **Hooks**: Custom hooks for reusable logic
 
 ### Styling Approach
+
 - **Tailwind CSS**: Utility-first CSS framework
-- **CSS Modules**: For component-scoped styles
+- **Component-scoped Styles**: Tailwind classes with custom components
 - **Design Tokens**: Consistent spacing, colors, and typography
 - **Responsive Design**: Mobile-first approach
 
 ### Testing Strategy
-- **Unit Tests**: Jest for component and utility testing
+
+- **Unit Tests**: Vitest for component and utility testing
 - **Integration Tests**: Component interactions
 - **E2E Tests**: Playwright for user flows
 - **Snapshot Testing**: For UI consistency
-
 
 ## 🛠️ Prerequisites
 
@@ -323,11 +351,23 @@ RegisTrack is a comprehensive member registration and activity tracking system d
    ```
 
 3. Set up environment variables:
-   - Copy the example environment file:
+   - Create a `.env` file in the root directory
+   - Add the following environment variables:
+
      ```bash
-     cp .env.example .env
+     # Database
+     MONGODB_URI=mongodb://localhost:27017/regis-track
+
+     # JWT
+     JWT_SECRET=your-super-secret-jwt-key
+
+     # Server
+     PORT=3000
+     NODE_ENV=development
+
+     # Frontend API URL
+     VITE_API_URL=http://localhost:3000/api
      ```
-   - Update the `.env` file with your configuration (MongoDB connection, JWT secret, etc.)
 
 ### Running the Application
 
