@@ -1,7 +1,7 @@
 import { connect, connection } from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Role, User, Member, ActivityLog } from '../models';
 
 // Load environment variables from the .env file in the backend directory

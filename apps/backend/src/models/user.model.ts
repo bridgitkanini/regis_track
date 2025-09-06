@@ -1,6 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { IRole } from './role.model';
 
 const SALT_WORK_FACTOR = 10;
@@ -100,7 +100,8 @@ userSchema.methods.generateAuthToken = function (): string {
     role: user.role,
   };
 
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRES_IN });
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN as any };
+  return jwt.sign(payload, getJwtSecret(), options);
 };
 
 export const User = model<IUser>('User', userSchema);

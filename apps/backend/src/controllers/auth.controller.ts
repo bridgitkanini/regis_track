@@ -51,14 +51,21 @@ import { ActivityLog } from '../models/activity-log.model';
  *       409:
  *         description: Conflict - user already exists
  */
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { username, email, password, role: roleName = 'user' } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      throw new ApiError(400, 'User with this email or username already exists');
+      throw new ApiError(
+        400,
+        'User with this email or username already exists'
+      );
     }
 
     // Get the default role (user)
@@ -78,14 +85,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     // Generate token
     const token = user.generateAuthToken();
 
-    // Log the activity - using non-null assertion since this is a protected route
-    await ActivityLog.create({
-      action: 'create',
-      collectionName: 'User',
-      documentId: user._id,
-      userId: req.user!._id, // Non-null assertion is safe here due to auth middleware
-      changes: { username, email, role: role.name },
-    });
+    // Note: No activity logging for registration since user is not authenticated yet
 
     res.status(201).json({
       success: true,
@@ -159,19 +159,28 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password').populate('role', 'name');
+    const user = await User.findOne({ email })
+      .select('+password')
+      .populate('role', 'name');
     if (!user) {
       throw new ApiError(401, 'Invalid credentials');
     }
 
     // Check if user is active
     if (!user.isActive) {
-      throw new ApiError(401, 'Account is deactivated. Please contact support.');
+      throw new ApiError(
+        401,
+        'Account is deactivated. Please contact support.'
+      );
     }
 
     // Check if password matches
@@ -233,14 +242,21 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
  *       401:
  *         description: Not authenticated
  */
-export const getMe = async (req: Request, res: Response, next: NextFunction) => {
+export const getMe = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     if (!req.user) {
       throw new ApiError(401, 'Not authenticated');
     }
 
-    const user = await User.findById(req.user._id).populate('role', 'name permissions');
-    
+    const user = await User.findById(req.user._id).populate(
+      'role',
+      'name permissions'
+    );
+
     if (!user) {
       throw new ApiError(404, 'User not found');
     }
@@ -283,7 +299,11 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
  *       401:
  *         description: Invalid or expired refresh token
  */
-export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     if (!req.user) {
       throw new ApiError(401, 'Not authenticated');
@@ -342,7 +362,11 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // Log the activity - using non-null assertion since this is a protected route
     if (req.user) {
