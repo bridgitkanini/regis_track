@@ -4,6 +4,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { authApi } from '../features/auth/authApi';
 import { membersApi } from '../features/members/membersApi';
 import { activityApi } from '../features/activity/activityApi';
+import { dashboardApi } from '../features/dashboard/dashboardApi';
 import authReducer from '../features/auth/authSlice';
 import uiReducer from '../features/ui/uiSlice';
 
@@ -12,6 +13,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [membersApi.reducerPath]: membersApi.reducer,
     [activityApi.reducerPath]: activityApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
     auth: authReducer,
     ui: uiReducer,
   },
@@ -19,7 +21,8 @@ export const store = configureStore({
     getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(membersApi.middleware)
-      .concat(activityApi.middleware),
+      .concat(activityApi.middleware)
+      .concat(dashboardApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 

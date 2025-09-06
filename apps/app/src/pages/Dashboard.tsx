@@ -1,14 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import type { AxiosError } from 'axios';
-import apiClient from '../lib/api/client';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import type { DashboardStats } from '../components/dashboard/StatsGrid';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { Loader } from '../components/common/Loader';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { useGetActivitiesQuery } from '../features/activity/activityApi';
+import { useGetDashboardStatsQuery } from '../features/dashboard/dashboardApi';
 import { Activity } from '../types';
 
 // Define the activity type for the RecentActivity component
@@ -17,6 +16,8 @@ type ActivityItem = Activity & {
     username: string;
     avatar?: string;
   };
+  id: string; // Add missing id property
+  collection: string; // Add missing collection property
 };
 
 export const Dashboard = () => {
@@ -46,23 +47,14 @@ export const Dashboard = () => {
     [searchQuery]
   );
 
-  // Fetch dashboard stats with proper typing
+  // Replace the useQuery with RTK Query
   const {
-    data: stats,
+    data: statsResponse,
     isLoading: isLoadingStats,
     error: statsError,
-  }: UseQueryResult<DashboardStats, AxiosError> = useQuery<
-    DashboardStats,
-    AxiosError
-  >({
-    queryKey: ['dashboardStats'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<DashboardStats>(
-        '/api/dashboard/stats'
-      );
-      return data;
-    },
-  });
+  } = useGetDashboardStatsQuery();
+
+  const stats = statsResponse?.data;
 
   // Fetch activities with pagination and sorting
   const {
@@ -82,6 +74,8 @@ export const Dashboard = () => {
     if (!activitiesData?.data) return [];
     return activitiesData.data.map((activity) => ({
       ...activity,
+      id: activity._id, // Map _id to id
+      collection: activity.collectionName, // Map collectionName to collection
       user: {
         username: activity.user?.name || 'System',
         avatar: activity.user?.avatar,
@@ -162,7 +156,10 @@ export const Dashboard = () => {
           <Loader size="lg" />
         </div>
       ) : statsError ? (
-        <ErrorMessage message="Failed to load dashboard statistics" />
+        <ErrorMessage
+          title="Dashboard Error"
+          message="Failed to load dashboard statistics"
+        />
       ) : (
         stats && <StatsGrid stats={stats} />
       )}
@@ -220,7 +217,10 @@ export const Dashboard = () => {
             <Loader size="lg" />
           </div>
         ) : activitiesError ? (
-          <ErrorMessage message="Failed to load recent activities" />
+          <ErrorMessage
+            title="Activities Error"
+            message="Failed to load recent activities"
+          />
         ) : activities && activities.length > 0 ? (
           <RecentActivity
             activities={activities}

@@ -6,8 +6,8 @@ import { Router as ExpressRouter } from 'express';
 
 const router: ExpressRouter = Router();
 
-// Apply authentication and authorization middleware to all routes
-router.use(authenticate, authorize('admin'));
+// Apply authentication and authorization for both admin and user roles
+router.use(authenticate, authorize('admin', 'user'));
 
 // Dashboard statistics
 router.get('/stats', dashboardController.getDashboardStats);

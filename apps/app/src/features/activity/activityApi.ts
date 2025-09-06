@@ -8,7 +8,7 @@ export const activityApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${
       process.env.NX_API_URL || 'http://localhost:3000/api'
-    }/activity`,
+    }/dashboard/activity-logs`,
     prepareHeaders: (headers, { getState }) => {
       const token =
         (getState() as RootState).auth.token || localStorage.getItem('token');
@@ -84,7 +84,7 @@ export const activityApi = createApi({
       }),
       invalidatesTags: [{ type: 'Activity', id: 'LIST' }],
     }),
-    getRecentActivities: builder.query<Activity[], number | void>({
+    getRecentActivities: builder.query<Activity[], number>({
       query: (limit = 5) => ({
         url: '/recent',
         params: { limit },

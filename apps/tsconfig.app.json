@@ -21,6 +21,10 @@
     "tests/**/*.test.jsx"
   ],
   "compilerOptions": {
-    "types": ["node", "vite/client"]
+    "module": "ESNext",
+    "types": [
+      "node",
+      "vite/client"
+    ]
   }
 }

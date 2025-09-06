@@ -33,7 +33,12 @@ const roles = [
   },
   {
     name: 'user',
-    permissions: ['members:read', 'members:create', 'members:update'],
+    permissions: [
+      'members:read',
+      'members:create',
+      'members:update',
+      'dashboard:view', // Add this line - this is the key fix!
+    ],
   },
 ];
 
