@@ -5,33 +5,57 @@ import { ApiError } from '../middleware/error.middleware';
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
 // @access  Private/Admin
-export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
+export const getDashboardStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // Get total members count
     const totalMembers = await Member.countDocuments();
-    
+
     // Get active members count
     const activeMembers = await Member.countDocuments({ status: 'active' });
-    
+
     // Get inactive members count
     const inactiveMembers = await Member.countDocuments({ status: 'inactive' });
-    
+
     // Get total users count (excluding admins)
-    const totalUsers = await User.countDocuments({ 'role.name': { $ne: 'admin' } });
-    
+    const totalUsers = await User.countDocuments({
+      'role.name': { $ne: 'admin' },
+    });
+
+    // Get new members this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const newMembersThisMonth = await Member.countDocuments({
+      createdAt: { $gte: startOfMonth },
+    });
+
+     // Get memberships requiring renewal (members created more than 1 year ago)
+     const oneYearAgo = new Date();
+     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+     
+     const membershipRenewals = await Member.countDocuments({
+       status: 'active',
+       createdAt: { $lt: oneYearAgo }
+     });
+ 
+
     // Get recent activities
     const recentActivities = await ActivityLog.find()
       .sort({ timestamp: -1 })
       .limit(10)
       .populate('userId', 'username')
       .lean();
-    
+
     // Get member role distribution
     const roleDistribution = await Member.aggregate([
       { $group: { _id: '$role', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
     ]);
-    
+
     // Get monthly member growth
     const monthlyGrowth = await Member.aggregate([
       {
@@ -54,6 +78,8 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         activeMembers,
         inactiveMembers,
         totalUsers,
+        newMembersThisMonth,
+        membershipRenewals,
         recentActivities,
         roleDistribution,
         monthlyGrowth,
@@ -67,7 +93,11 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 // @desc    Get activity logs with filtering
 // @route   GET /api/dashboard/activity-logs
 // @access  Private/Admin
-export const getActivityLogs = async (req: Request, res: Response, next: NextFunction) => {
+export const getActivityLogs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // Pagination
     const page = parseInt(req.query.page as string) || 1;
@@ -76,19 +106,19 @@ export const getActivityLogs = async (req: Request, res: Response, next: NextFun
 
     // Filtering
     const filter: any = {};
-    
+
     if (req.query.userId) {
       filter.userId = req.query.userId;
     }
-    
+
     if (req.query.action) {
       filter.action = req.query.action;
     }
-    
+
     if (req.query.collectionName) {
       filter.collectionName = req.query.collectionName;
     }
-    
+
     if (req.query.startDate || req.query.endDate) {
       filter.timestamp = {};
       if (req.query.startDate) {
@@ -129,19 +159,23 @@ export const getActivityLogs = async (req: Request, res: Response, next: NextFun
 // @desc    Get member statistics
 // @route   GET /api/dashboard/member-stats
 // @access  Private/Admin
-export const getMemberStats = async (req: Request, res: Response, next: NextFunction) => {
+export const getMemberStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // Get member count by status
     const statusStats = await Member.aggregate([
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
-    
+
     // Get member count by role
     const roleStats = await Member.aggregate([
       { $group: { _id: '$role', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
     ]);
-    
+
     // Get member creation trend (last 12 months)
     const monthlyTrend = await Member.aggregate([
       {
@@ -156,7 +190,7 @@ export const getMemberStats = async (req: Request, res: Response, next: NextFunc
       { $sort: { '_id.year': 1, '_id.month': 1 } },
       { $limit: 12 },
     ]);
-    
+
     // Get members by creator
     const creatorStats = await Member.aggregate([
       {
