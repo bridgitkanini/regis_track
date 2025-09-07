@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import * as dashboardController from '../controllers/dashboard.controller';
-import { authenticate, authorize } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 
 import { Router as ExpressRouter } from 'express';
 
 const router: ExpressRouter = Router();
 
-// Apply authentication and authorization for both admin and user roles
-router.use(authenticate, authorize('admin', 'user'));
+// Apply authentication only - all authenticated users can access dashboard data
+router.use(authenticate);
 
 // Dashboard statistics
 router.get('/stats', dashboardController.getDashboardStats);
