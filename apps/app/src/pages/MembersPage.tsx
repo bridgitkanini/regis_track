@@ -56,9 +56,9 @@ export const MembersPage = () => {
     isError,
     error,
     refetch,
-  } = useQuery(
-    ['members', { page, sortField, sortOrder, ...filters }],
-    async () => {
+  } = useQuery({
+    queryKey: ['members', { page, sortField, sortOrder, ...filters }],
+    queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '10',
@@ -72,10 +72,9 @@ export const MembersPage = () => {
       const { data } = await apiClient.get(`/api/members?${params.toString()}`);
       return data;
     },
-    {
-      keepPreviousData: true,
-    }
-  );
+    keepPreviousData: true,
+  });
+
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
