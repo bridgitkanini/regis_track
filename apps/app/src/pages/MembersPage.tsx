@@ -22,7 +22,13 @@ type Member = {
   createdAt: string;
 };
 
-type SortField = 'firstName' | 'email' | 'role' | 'status' | 'createdAt';
+type SortField =
+  | 'firstName'
+  | 'email'
+  | 'role'
+  | 'status'
+  | 'createdAt'
+  | 'role.name';
 type SortOrder = 'asc' | 'desc';
 
 export const MembersPage = () => {
@@ -41,7 +47,7 @@ export const MembersPage = () => {
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || '';
     const role = searchParams.get('role') || '';
-    
+
     setFilters({
       search,
       status,
@@ -72,9 +78,8 @@ export const MembersPage = () => {
       const { data } = await apiClient.get(`/api/members?${params.toString()}`);
       return data;
     },
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
-
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -84,7 +89,8 @@ export const MembersPage = () => {
 
   const handleSort = (field: SortField) => {
     // If clicking the same field, toggle the sort order
-    const newSortOrder = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    const newSortOrder =
+      sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
     setSortField(field);
     setSortOrder(newSortOrder);
     // Reset to first page when changing sort
@@ -152,10 +158,7 @@ export const MembersPage = () => {
         </div>
       </div>
 
-      <MemberFilters 
-        onSearch={handleSearch} 
-        initialValues={filters} 
-      />
+      <MemberFilters onSearch={handleSearch} initialValues={filters} />
 
       <div className="overflow-hidden bg-white shadow sm:rounded-md">
         {isLoading ? (
@@ -170,8 +173,8 @@ export const MembersPage = () => {
               sortOrder={sortOrder}
               onSort={handleSort}
             />
-            
-            {membersData?.data.length === 0 ? (
+
+            {membersData?.data?.length === 0 ? (
               <div className="px-6 py-4 text-center text-sm text-gray-500">
                 No members found matching your criteria.
               </div>
@@ -180,7 +183,7 @@ export const MembersPage = () => {
         )}
       </div>
 
-      {membersData?.pagination && (
+      {membersData && (
         <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
@@ -196,9 +199,9 @@ export const MembersPage = () => {
             </button>
             <button
               onClick={() => handlePageChange(page + 1)}
-              disabled={!membersData.pagination?.hasNextPage}
+              disabled={page >= membersData.pages}
               className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                !membersData.pagination?.hasNextPage
+                page >= membersData.pages
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
@@ -209,25 +212,22 @@ export const MembersPage = () => {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">
-                  {membersData.pagination.totalItems === 0 
-                    ? 0 
-                    : (page - 1) * membersData.pagination.itemsPerPage + 1}
+                Showing{' '}
+                <span className="font-medium">
+                  {membersData.total === 0 ? 0 : (page - 1) * 10 + 1}
                 </span>{' '}
                 to{' '}
                 <span className="font-medium">
-                  {Math.min(
-                    page * membersData.pagination.itemsPerPage,
-                    membersData.pagination.totalItems
-                  )}
+                  {Math.min(page * 10, membersData.total)}
                 </span>{' '}
-                of <span className="font-medium">{membersData.pagination.totalItems}</span> results
+                of <span className="font-medium">{membersData.total}</span>{' '}
+                results
               </p>
             </div>
             <div>
               <Pagination
                 currentPage={page}
-                totalPages={membersData.pagination.totalPages}
+                totalPages={membersData.pages}
                 onPageChange={handlePageChange}
               />
             </div>
