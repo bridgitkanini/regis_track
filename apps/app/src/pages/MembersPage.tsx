@@ -1,26 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MemberTable } from '../components/members/MemberTable';
 import { MemberFilters } from '../components/members/MemberFilters';
 import { Pagination } from '../components/common/Pagination';
 import { Loader } from '../components/common/Loader';
+import { RouterLink } from '../components/common/RouterLink';
+import { Member } from '../types/member';
 import apiClient from '../lib/api/client';
-
-type Member = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  status: 'active' | 'inactive' | 'pending';
-  role: {
-    id: string;
-    name: string;
-  };
-  profilePicture: string | null;
-  createdAt: string;
-};
 
 type SortField =
   | 'firstName'
@@ -87,11 +74,11 @@ export const MembersPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleSort = (field: SortField) => {
+  const handleSort = (field: keyof Member | 'role.name') => {
     // If clicking the same field, toggle the sort order
     const newSortOrder =
       sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
-    setSortField(field);
+    setSortField(field as SortField);
     setSortOrder(newSortOrder);
     // Reset to first page when changing sort
     setPage(1);
@@ -149,12 +136,12 @@ export const MembersPage = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <Link
+          <RouterLink
             to="/members/new"
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
           >
             Add member
-          </Link>
+          </RouterLink>
         </div>
       </div>
 

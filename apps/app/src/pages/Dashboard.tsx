@@ -1,8 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
-import type { AxiosError } from 'axios';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
-import type { DashboardStats } from '../components/dashboard/StatsGrid';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { Loader } from '../components/common/Loader';
 import { ErrorMessage } from '../components/common/ErrorMessage';
