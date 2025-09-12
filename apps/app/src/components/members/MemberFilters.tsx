@@ -41,7 +41,7 @@ export const MemberFilters = ({
     queryKey: ['roles'],
     queryFn: async () => {
       const response = await apiClient.get<{ roles: Role[] }>('/api/roles');
-      return response.roles;
+      return response.data.roles;
     },
   });
 
@@ -93,7 +93,9 @@ export const MemberFilters = ({
               placeholder="Search members..."
               value={filters.search}
               onChange={(e) => handleInputChange('search', e.target.value)}
-              icon={MagnifyingGlassIcon}
+              leftIcon={
+                <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+              }
               className="w-full"
             />
           </div>
@@ -122,7 +124,7 @@ export const MemberFilters = ({
                 label="Status"
                 name="status"
                 value={filters.status}
-                onValueChange={(value) => handleInputChange('status', value)}
+                onChange={(e) => handleInputChange('status', e.target.value)}
                 options={[
                   { value: '', label: 'All Statuses' },
                   { value: 'active', label: 'Active' },
@@ -135,11 +137,11 @@ export const MemberFilters = ({
                 label="Role"
                 name="role"
                 value={filters.role}
-                onValueChange={(value) => handleInputChange('role', value)}
+                onChange={(e) => handleInputChange('role', e.target.value)}
                 options={[
                   { value: '', label: 'All Roles' },
                   ...(roles?.map((role) => ({
-                    value: role._id,
+                    value: role.id,
                     label: role.name,
                   })) || []),
                 ]}
@@ -184,7 +186,7 @@ export const MemberFilters = ({
           {filters.role && (
             <span className="inline-flex items-center rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium">
               Role:{' '}
-              {roles?.find((r) => r._id === filters.role)?.name || filters.role}
+              {roles?.find((r) => r.id === filters.role)?.name || filters.role}
               <button
                 type="button"
                 className="ml-1.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted-foreground/20"
