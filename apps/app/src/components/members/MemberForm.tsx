@@ -107,12 +107,13 @@ const memberSchema = yup.object({
       /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/,
       'Please enter a valid phone number'
     )
+    .nullable()
     .optional(),
-  address: yup.string().optional(),
-  city: yup.string().optional(),
-  state: yup.string().optional(),
-  postalCode: yup.string().optional(),
-  country: yup.string().optional(),
+  address: yup.string().nullable().optional(),
+  city: yup.string().nullable().optional(),
+  state: yup.string().nullable().optional(),
+  postalCode: yup.string().nullable().optional(),
+  country: yup.string().nullable().optional(),
   dateOfBirth: yup
     .date()
     .nullable()
@@ -124,13 +125,14 @@ const memberSchema = yup.object({
       ['male', 'female', 'other', 'prefer-not-to-say'],
       'Please select a valid gender'
     )
+    .nullable()
     .optional(),
   status: yup
     .string()
     .oneOf(['active', 'inactive', 'pending'], 'Please select a valid status')
     .required('Status is required'),
   roleId: yup.string().required('Role is required'),
-  notes: yup.string().optional(),
+  notes: yup.string().nullable().optional(),
   profilePicture: yup
     .mixed()
     .test('fileSize', 'File size is too large (max 5MB)', (value) => {
@@ -245,7 +247,7 @@ export const MemberForm = () => {
     setValue,
     watch,
   } = useForm<FormValues>({
-    resolver: yupResolver(memberSchema),
+    resolver: yupResolver(memberSchema) as any,
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -266,8 +268,8 @@ export const MemberForm = () => {
   }, [memberData, setValue]);
 
   // Handle file input change for profile picture
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = (files: FileList | null) => {
+    const file = files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -429,21 +431,27 @@ export const MemberForm = () => {
                 </div>
 
                 <div className="sm:col-span-3">
-                  <Controller
-                    name="dateOfBirth"
-                    control={control}
-                    render={({ field }) => (
+                  {(Controller as any)({
+                    name: 'dateOfBirth',
+                    control: control,
+                    render: ({ field }: { field: any }) => (
                       <DatePicker
                         label="Date of Birth"
-                        selected={field.value}
-                        onChange={(date) => field.onChange(date)}
-                        maxDate={new Date()}
-                        showYearDropdown
-                        dropdownMode="select"
+                        value={
+                          field.value
+                            ? field.value.toISOString().split('T')[0]
+                            : ''
+                        }
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? new Date(e.target.value) : null
+                          )
+                        }
+                        max={new Date().toISOString().split('T')[0]}
                         error={errors.dateOfBirth?.message}
                       />
-                    )}
-                  />
+                    ),
+                  })}
                 </div>
 
                 <div className="sm:col-span-3">
@@ -452,13 +460,17 @@ export const MemberForm = () => {
                     id="gender"
                     {...register('gender')}
                     error={errors.gender?.message}
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                    <option value="prefer-not-to-say">Prefer not to say</option>
-                  </Select>
+                    options={[
+                      { value: '', label: 'Select Gender' },
+                      { value: 'male', label: 'Male' },
+                      { value: 'female', label: 'Female' },
+                      { value: 'other', label: 'Other' },
+                      {
+                        value: 'prefer-not-to-say',
+                        label: 'Prefer not to say',
+                      },
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -531,11 +543,12 @@ export const MemberForm = () => {
                     {...register('status')}
                     error={errors.status?.message}
                     required
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="pending">Pending</option>
-                  </Select>
+                    options={[
+                      { value: 'active', label: 'Active' },
+                      { value: 'inactive', label: 'Inactive' },
+                      { value: 'pending', label: 'Pending' },
+                    ]}
+                  />
                 </div>
 
                 <div className="sm:col-span-3">
@@ -545,14 +558,14 @@ export const MemberForm = () => {
                     {...register('roleId')}
                     error={errors.roleId?.message}
                     required
-                  >
-                    <option value="">Select a role</option>
-                    {roles.map((role) => (
-                      <option key={role._id} value={role._id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </Select>
+                    options={[
+                      { value: '', label: 'Select a role' },
+                      ...roles.map((role) => ({
+                        value: role.id,
+                        label: role.name,
+                      })),
+                    ]}
+                  />
                 </div>
 
                 <div className="sm:col-span-6">
