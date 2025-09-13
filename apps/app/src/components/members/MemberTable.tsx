@@ -2,16 +2,18 @@ import { Link } from 'react-router-dom';
 import {
   ArrowUpIcon,
   ArrowDownIcon,
-  PlusIcon,
   PencilIcon,
   TrashIcon,
   EyeIcon,
 } from '@heroicons/react/20/solid';
 import { Badge } from '../common/Badge';
+import { Loader } from '../common/Loader';
 import { format } from 'date-fns';
-import { Member, MemberStatus } from '../../types/member';
+import { Member } from '../../types/member';
 import { cn } from '../../lib/utils';
 import { Button } from '../common/Button';
+
+type MemberStatus = 'active' | 'inactive' | 'pending';
 
 type SortableField =
   | keyof Pick<Member, 'firstName' | 'email' | 'status' | 'createdAt'>
@@ -73,7 +75,7 @@ export const MemberTable = ({
     return (
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         className={cn(
           'ml-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100',
           isActive ? 'opacity-100' : ''
@@ -143,7 +145,7 @@ export const MemberTable = ({
           <tbody className="divide-y divide-border bg-background">
             {members.map((member) => (
               <tr
-                key={member._id}
+                key={member.id}
                 className="hover:bg-muted/50 transition-colors"
               >
                 <td className="whitespace-nowrap px-4 py-4">
@@ -193,16 +195,17 @@ export const MemberTable = ({
                 </td>
                 <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link to={`/members/${member._id}`}>
+                    {(Link as any)(
+                      { to: `/members/${member.id}` },
+                      <Button variant="ghost" size="sm">
                         <EyeIcon className="h-4 w-4" />
                         <span className="sr-only">View</span>
-                      </Link>
-                    </Button>
+                      </Button>
+                    )}
                     {onEdit && (
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => onEdit(member)}
                       >
                         <PencilIcon className="h-4 w-4" />
@@ -212,7 +215,7 @@ export const MemberTable = ({
                     {onDelete && (
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => onDelete(member)}
                         className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       >
