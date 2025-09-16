@@ -6,7 +6,6 @@ import { Button } from '../common/Button';
 import { Loader } from '../common/Loader';
 import { Badge } from '../common/Badge';
 import { Card } from '../common/Card';
-import { cn } from '../../lib/utils';
 import apiClient from '../../lib/api/client';
 import { Member } from '../../types/member';
 
@@ -24,14 +23,10 @@ export const MemberDetail = () => {
     queryKey: ['member', id],
     queryFn: async () => {
       if (!id) throw new Error('Member ID is required');
-      const data = await apiClient.get<Member>(`/api/members/${id}`);
-      return data;
+      const response = await apiClient.get<Member>(`/api/members/${id}`);
+      return response.data;
     },
     enabled: !!id,
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Failed to load member data');
-      navigate('/members');
-    },
   });
 
   // Delete member mutation
@@ -148,13 +143,16 @@ export const MemberDetail = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link to={`/members/${member._id}/edit`}>Edit</Link>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/members/${member.id}/edit`)}
+          >
+            Edit
           </Button>
           <Button
-            variant="destructive"
+            variant="outline"
             onClick={handleDelete}
-            loading={deleteMember.isPending}
+            isLoading={deleteMember.isPending}
           >
             Delete
           </Button>
@@ -201,9 +199,7 @@ export const MemberDetail = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium">Phone Number</h3>
-                <p className="text-sm">
-                  {member.phoneNumber || 'Not provided'}
-                </p>
+                <p className="text-sm">{member.phone || 'Not provided'}</p>
               </div>
 
               <div className="space-y-1">
@@ -234,13 +230,11 @@ export const MemberDetail = () => {
                 <h3 className="text-sm font-medium">Address</h3>
                 <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                   <div>
-                    <p>{member.address.street1}</p>
-                    {member.address.street2 && <p>{member.address.street2}</p>}
+                    <p>{member.address}</p>
                     <p>
-                      {member.address.city}, {member.address.state}{' '}
-                      {member.address.postalCode}
+                      {member.city}, {member.state} {member.postalCode}
                     </p>
-                    <p>{member.address.country}</p>
+                    <p>{member.country}</p>
                   </div>
                 </div>
               </div>
