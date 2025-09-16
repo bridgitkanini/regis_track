@@ -1,13 +1,14 @@
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+// @ts-ignore
 import { Link, useLocation } from 'react-router-dom';
-import { User } from '../../types';
+import { AuthResponse } from '../../services/auth.service';
 import { cn } from '../../lib/utils';
 import { ThemeToggle } from '../common/ThemeToggle';
 
 interface NavbarProps {
-  user: User;
+  user: AuthResponse['user'];
   onLogout: () => Promise<void>;
 }
 
@@ -83,7 +84,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                     <Menu.Button className="flex rounded-full bg-primary/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
                       <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                        {user?.name
+                        {user?.username
                           ?.split(' ')
                           .map((n) => n[0])
                           .join('')}
@@ -91,7 +92,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                     </Menu.Button>
                   </div>
                   <Transition
-                    as={Fragment}
+                    as={Fragment as React.ComponentType}
                     enter="transition ease-out duration-100"
                     enterFrom="transform opacity-0 scale-95"
                     enterTo="transform opacity-100 scale-100"
@@ -183,7 +184,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    {user?.name
+                    {user?.username
                       ?.split(' ')
                       .map((n) => n[0])
                       .join('')}
