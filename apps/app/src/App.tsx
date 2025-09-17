@@ -23,6 +23,9 @@ import { Unauthorized } from './pages/Unauthorized';
 import { MemberLayout } from './layouts/MemberLayout';
 import { MemberDetail } from './components/members/MemberDetail';
 import { MemberForm } from './components/members/MemberForm';
+import MonthlyReport from './pages/reports/MonthlyReport';
+import QuarterlyReport from './pages/reports/QuarterlyReport';
+import YearlyReport from './pages/reports/YearlyReport';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -108,6 +111,14 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  
+                  {/* Reports Routes */}
+                  <Route path="reports">
+                    <Route index element={<Navigate to="monthly" replace />} />
+                    <Route path="monthly" element={<MonthlyReport />} />
+                    <Route path="quarterly" element={<QuarterlyReport />} />
+                    <Route path="yearly" element={<YearlyReport />} />
+                  </Route>
                 </Route>
 
                 {/* 404 - Catch all */}
