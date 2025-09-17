@@ -192,7 +192,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-foreground">
-                    {user?.name}
+                    {user?.username}
                   </div>
                   <div className="text-sm font-medium text-foreground/70">
                     {user?.email}

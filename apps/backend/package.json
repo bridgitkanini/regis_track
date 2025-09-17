@@ -8,7 +8,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@types/react-router-dom": "^5.3.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
@@ -20,7 +19,6 @@
     "mongodb": "^6.18.0",
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
-    "react-router-dom": "^7.7.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0"
