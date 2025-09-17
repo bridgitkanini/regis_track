@@ -24,17 +24,17 @@ export interface AuthResponse {
 
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
-  return response;
+  return response.data;
 };
 
 export const register = async (userData: RegisterData): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>('/api/auth/register', userData);
-  return response;
+  return response.data;
 };
 
 export const getCurrentUser = async (): Promise<AuthResponse['user']> => {
   const response = await apiClient.get<AuthResponse['user']>('/api/auth/me');
-  return response;
+  return response.data;
 };
 
 export const logout = async (): Promise<void> => {
@@ -51,7 +51,7 @@ export const logout = async (): Promise<void> => {
 
 export const refreshToken = async (): Promise<{ token: string }> => {
   const response = await apiClient.post<{ token: string }>('/api/auth/refresh-token');
-  return response;
+  return response.data;
 };
 
 export const isAuthenticated = (): boolean => {

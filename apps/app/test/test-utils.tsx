@@ -1,5 +1,7 @@
 import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { expect } from 'vitest';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -20,14 +22,14 @@ const AllTheProviders = ({
     defaultOptions: {
       queries: {
         retry: false,
-        cacheTime: 0,
+        gcTime: 0,
       },
     },
   });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider initialTheme={initialTheme}>
+      <ThemeProvider defaultTheme={initialTheme}>
         <BrowserRouter>{children}</BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>

@@ -46,9 +46,9 @@ export const membersApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.data.map(({ _id }) => ({
+              ...result.data.map(({ id }) => ({
                 type: 'Member' as const,
-                id: _id,
+                id,
               })),
               { type: 'Member', id: 'LIST' },
             ]

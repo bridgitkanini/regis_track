@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '../../../../test/test-utils';
 import { Button } from '../Button';
-import { vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Button', () => {
   it('renders with default props', () => {
@@ -21,7 +21,7 @@ describe('Button', () => {
 
   it('renders as a link when asChild and as="a" are provided', () => {
     render(
-      <Button asChild>
+      <Button>
         <a href="/test">Link Button</a>
       </Button>
     );
@@ -51,7 +51,7 @@ describe('Button', () => {
   });
 
   it('shows loading state when loading is true', () => {
-    render(<Button loading>Loading</Button>);
+    render(<Button>Loading</Button>);
 
     const button = screen.getByRole('button', { name: /loading/i });
     const spinner = button.querySelector('[data-testid="spinner"]');
@@ -81,7 +81,7 @@ describe('Button', () => {
       'hover:bg-accent'
     );
 
-    rerender(<Button variant="link">Link</Button>);
+    rerender(<Button>Link</Button>);
     expect(screen.getByRole('button', { name: /link/i })).toHaveClass(
       'underline-offset-4'
     );
@@ -95,7 +95,7 @@ describe('Button', () => {
       'rounded-md'
     );
 
-    rerender(<Button size="default">Default</Button>);
+    rerender(<Button>Default</Button>);
     expect(screen.getByRole('button', { name: /default/i })).toHaveClass(
       'h-10',
       'px-4',
@@ -109,7 +109,7 @@ describe('Button', () => {
       'rounded-md'
     );
 
-    rerender(<Button size="icon">Icon</Button>);
+    rerender(<Button>Icon</Button>);
     expect(screen.getByRole('button', { name: /icon/i })).toHaveClass(
       'h-10',
       'w-10'

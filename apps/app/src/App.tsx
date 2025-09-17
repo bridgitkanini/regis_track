@@ -8,7 +8,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { useTheme } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
@@ -59,6 +59,7 @@ const ThemeWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  const { user } = useAuth();
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -87,7 +88,7 @@ function App() {
                   <Route
                     path="members"
                     element={
-                      <ProtectedRoute requiredRole={['admin', 'manager']}>
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
                         <MemberLayout />
                       </ProtectedRoute>
                     }
@@ -98,7 +99,7 @@ function App() {
                     <Route path=":id/edit" element={<MemberForm />} />
                   </Route>
 
-                  <Route path="profile" element={<Profile />} />
+                  <Route path="profile" element={<Profile user={user!} />} />
                   <Route
                     path="settings"
                     element={

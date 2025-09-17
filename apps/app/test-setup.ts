@@ -2,7 +2,8 @@
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
@@ -22,7 +23,12 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock window.scrollTo
-window.scrollTo = vi.fn();
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: vi.fn(
+    (options?: ScrollToOptions | number, y?: number) => {}
+  ) as unknown as (typeof window)['scrollTo'],
+});
 
 // Mock ResizeObserver
 class ResizeObserver {

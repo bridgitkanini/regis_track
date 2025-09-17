@@ -35,17 +35,13 @@ const badgeVariants = cva(
   }
 );
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
-  /**
-   * Optional icon to display before the badge content
-   */
+export interface BadgeProps extends VariantProps<typeof badgeVariants> {
+  as?: 'div' | 'button';
   icon?: React.ReactNode;
-  /**
-   * Optional click handler
-   */
   onClick?: () => void;
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: any; // Allow other props
 }
 
 function Badge({
@@ -55,9 +51,10 @@ function Badge({
   icon,
   children,
   onClick,
+  as,
   ...props
 }: BadgeProps) {
-  const Component = onClick ? 'button' : 'div';
+  const Component = as || (onClick ? 'button' : 'div');
 
   return (
     <Component
@@ -77,5 +74,3 @@ function Badge({
     </Component>
   );
 }
-
-export { Badge, badgeVariants };

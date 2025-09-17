@@ -187,8 +187,8 @@ export const Sidebar = () => {
                           />
                         </Disclosure.Button>
                         <Disclosure.Panel className="pl-4 space-y-1">
-                          {item.children.map((subItem) => (
-                            <Link
++                          {item.children?.map((subItem) => (
+                             <Link
                               key={subItem.name}
                               to={subItem.href}
                               className={cn(

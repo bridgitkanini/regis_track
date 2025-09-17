@@ -5,7 +5,7 @@ import * as yup from 'yup';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useLoginMutation } from '../../features/auth/authApi';
-import { loginSuccess, authFailure } from '../../features/auth/authSlice';
+import { loginSuccess } from '../../features/auth/authSlice';
 import { useApiError } from '../../hooks/useApiError';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
@@ -26,7 +26,7 @@ export const LoginForm = () => {
   const [login, { error: apiError, isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  useApiError(apiError);
+  useApiError();
 
   const {
     register,

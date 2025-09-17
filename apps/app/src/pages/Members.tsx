@@ -7,19 +7,7 @@ import { Pagination } from '../components/common/Pagination';
 import { Button } from '../components/common/Button';
 import { Loader } from '../components/common/Loader';
 import apiClient from '../lib/api/client';
-
-type Member = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  status: 'active' | 'inactive' | 'pending';
-  role: {
-    name: string;
-  };
-  createdAt: string;
-};
+import { Member } from '../types';
 
 type MembersResponse = {
   members: Member[];
@@ -29,30 +17,32 @@ type MembersResponse = {
   totalPages: number;
 };
 
+type SortField =
+  | keyof Pick<Member, 'firstName' | 'email' | 'status' | 'createdAt'>
+  | 'role.name';
+
 export const Members = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortField, setSortField] = useState('createdAt');
+  const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const { data, isLoading, isError, error } = useQuery<MembersResponse, Error>(
-    ['members', { page, limit, searchTerm, sortField, sortOrder }],
-    async () => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        sort: `${sortField}:${sortOrder}`,
-        ...(searchTerm && { search: searchTerm }),
-      });
+  const { data, isLoading, isError, error } = useQuery<MembersResponse, Error>({
+    queryKey: ['members', { page, limit, searchTerm, sortField, sortOrder }],
+   queryFn: async () => {
+       const params = new URLSearchParams({
+         page: page.toString(),
+         limit: limit.toString(),
+         sort: `${sortField}:${sortOrder}`,
+         ...(searchTerm && { search: searchTerm }),
+       });
 
-      const { data } = await apiClient.get(`/api/members?${params.toString()}`);
-      return data;
-    },
-    {
-      keepPreviousData: true,
-    }
-  );
+       const { data } = await apiClient.get(`/api/members?${params.toString()}`);
+       return data;
+     },
+    placeholderData: (prev) => prev,
+   });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,22 +50,24 @@ export const Members = () => {
     setPage(1);
   };
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
+  const handleSort = (field: keyof Member | 'role.name') => {
+    const allowed: ReadonlyArray<SortField> = [
+      'firstName',
+      'email',
+      'status',
+      'createdAt',
+      'role.name',
+    ];
+    if (!allowed.includes(field as SortField)) return;
+    const sf = field as SortField;
+  
+    if (sortField === sf) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortField(field);
+      setSortField(sf);
       setSortOrder('asc');
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader size="lg" />
-      </div>
-    );
-  }
 
   if (isError) {
     return (
