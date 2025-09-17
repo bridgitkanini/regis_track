@@ -1,14 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ThemeToggle } from '../ThemeToggle';
 import { ThemeProvider } from '../../../contexts/ThemeContext';
 
 // Mock the ThemeContext
 const mockSetTheme = vi.fn();
 
-const renderWithTheme = (initialTheme = 'system') => {
+const renderWithTheme = (
+  initialTheme: 'light' | 'dark' | 'system' = 'system'
+) => {
   return render(
-    <ThemeProvider initialTheme={initialTheme}>
+    <ThemeProvider defaultTheme={initialTheme}>
       <ThemeToggle />
     </ThemeProvider>
   );

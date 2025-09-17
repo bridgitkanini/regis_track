@@ -132,7 +132,7 @@ export function Pagination({
             ) : (
               <Button
                 key={page}
-                variant={page === currentPage ? 'default' : 'outline'}
+                variant={page === currentPage ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
                 aria-current={page === currentPage ? 'page' : undefined}

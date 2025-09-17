@@ -86,7 +86,6 @@ export function Spinner({
   className,
   variant = 'primary',
   size = 'md',
-  ...props
 }: Omit<LoaderProps, 'variant' | 'size'> & {
   variant?: 'primary' | 'secondary' | 'default';
   size?: 'sm' | 'md' | 'lg';
@@ -115,7 +114,6 @@ export function Spinner({
         className
       )}
       role="status"
-      {...props}
     >
       <span className="sr-only">Loading...</span>
     </div>

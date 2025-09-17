@@ -74,3 +74,5 @@ function Badge({
     </Component>
   );
 }
+
+export { Badge };

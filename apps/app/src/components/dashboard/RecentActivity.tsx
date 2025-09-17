@@ -295,7 +295,7 @@ export const RecentActivity = ({
               {getPageNumbers().map((page) => (
                 <Button
                   key={page}
-                  variant={page === currentPage ? 'default' : 'ghost'}
+                  variant={page === currentPage ? 'primary' : 'ghost'}
                   size="sm"
                   className={cn(
                     'rounded-none border-l border-border',

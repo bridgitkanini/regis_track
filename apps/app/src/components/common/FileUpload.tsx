@@ -1,4 +1,10 @@
-import { ChangeEvent, forwardRef, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  forwardRef,
+  useRef,
+  useState,
+  useImperativeHandle,
+} from 'react';
 import { classNames } from '../../utils/classNames';
 
 type FileUploadSize = 'sm' | 'md' | 'lg';
@@ -41,12 +47,17 @@ const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
   ) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [fileName, setFileName] = useState<string>('');
-    const fileUploadId = id || `file-upload-${Math.random().toString(36).substr(2, 9)}`;
+    const fileUploadId =
+      id || `file-upload-${Math.random().toString(36).substr(2, 9)}`;
+
+    useImperativeHandle(ref, () => fileInputRef.current!, []);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
-        setFileName(multiple ? `${files.length} files selected` : files[0].name);
+        setFileName(
+          multiple ? `${files.length} files selected` : files[0].name
+        );
       } else {
         setFileName('');
       }
@@ -75,14 +86,7 @@ const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
           <input
             type="file"
             id={fileUploadId}
-            ref={(node) => {
-              if (typeof ref === 'function') {
-                ref(node);
-              } else if (ref) {
-                ref.current = node;
-              }
-              fileInputRef.current = node;
-            }}
+            ref={fileInputRef}
             className="hidden"
             accept={accept}
             multiple={multiple}
@@ -98,7 +102,9 @@ const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
                 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 sizeClasses[size],
-                error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '',
+                error
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : '',
                 className
               )}
               onClick={!disabled ? triggerFileInput : undefined}
@@ -111,7 +117,11 @@ const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
                 }
               }}
             >
-              <span className={classNames(!fileName && 'text-gray-400 dark:text-gray-500')}>
+              <span
+                className={classNames(
+                  !fileName && 'text-gray-400 dark:text-gray-500'
+                )}
+              >
                 {fileName || 'Choose a file...'}
               </span>
               <span className="ml-3">
@@ -134,7 +144,10 @@ const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
           </div>
         </div>
         {error && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400" id={`${fileUploadId}-error`}>
+          <p
+            className="mt-1 text-sm text-red-600 dark:text-red-400"
+            id={`${fileUploadId}-error`}
+          >
             {error}
           </p>
         )}

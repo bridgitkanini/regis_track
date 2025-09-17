@@ -11,23 +11,31 @@ export interface User {
   };
 }
 export type LoginRequest = { email: string; password: string };
-export type RegisterRequest = { username: string; email: string; password: string };
+export type RegisterRequest = {
+  username: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  isActive?: boolean;
+};
 
 export interface MemberRequest {
   firstName: string;
   lastName: string;
- email: string;
- phone?: string;
- address?: string;
- city?: string;
- state?: string;
- postalCode?: string;
- country?: string;
- dateOfBirth?: string | null;
- gender?: string;
- status: 'active' | 'inactive' | 'pending';
- roleId: string;
- notes?: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  dateOfBirth?: string | null;
+  gender?: string;
+  status: 'active' | 'inactive' | 'pending';
+  roleId: string;
+  notes?: string;
 }
 
 export interface ApiResponse<T> {
