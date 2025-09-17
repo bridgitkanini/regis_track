@@ -1,16 +1,18 @@
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-} from '../../../../test/test-utils';
+import { render, screen, waitFor, fireEvent, RenderOptions } from '../../../../test/test-utils';
 import MemberForm from '../MemberForm';
-import { vi } from 'vitest';
+import { describe, vi, beforeEach, it, expect } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+type CustomRenderOptions = RenderOptions & {
+  route?: string;
+  initialTheme?: 'light' | 'dark' | 'system';
+  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
+};
 
 // Mock the API client
-vi.mock('../../../../lib/api/client', () => ({
+vi.mock('../../../lib/api/client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -43,12 +45,12 @@ describe('MemberForm', () => {
     { _id: '2', name: 'Member', permissions: ['read'] },
   ];
 
-  const renderMemberForm = (isEdit = false) => {
+  const renderMemberForm = (isEdit = false, options: CustomRenderOptions = {}) => {
     const queryClient = new QueryClient();
-
+  
     // Mock the roles query
     queryClient.setQueryData(['roles'], mockRoles);
-
+  
     if (isEdit) {
       // Mock the member data for edit mode
       queryClient.setQueryData(['member', '123'], {
@@ -61,14 +63,19 @@ describe('MemberForm', () => {
         dateOfBirth: '1990-01-01',
       });
     }
+  
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
 
-    return render(<MemberForm />, {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-      ),
-    });
+    return render(
+      <Wrapper>
+        <MemberForm />
+      </Wrapper>,
+      options
+    );
   };
 
   beforeEach(() => {
@@ -147,7 +154,7 @@ describe('MemberForm', () => {
     });
 
     // Mock the API client
-    const apiClient = await import('../../../../lib/api/client');
+    const apiClient = await import('../../../lib/api/client');
     apiClient.default.post = mockPost;
 
     renderMemberForm();
@@ -202,7 +209,7 @@ describe('MemberForm', () => {
     });
 
     // Mock the API client
-    const apiClient = await import('../../../../lib/api/client');
+    const apiClient = await import('../../../lib/api/client');
     apiClient.default.post = mockPost;
 
     renderMemberForm();
@@ -255,7 +262,7 @@ describe('MemberForm', () => {
     });
 
     // Mock the API client
-    const apiClient = await import('../../../../lib/api/client');
+    const apiClient = await import('../../../lib/api/client');
     apiClient.default.put = mockPut;
 
     renderMemberForm(true);

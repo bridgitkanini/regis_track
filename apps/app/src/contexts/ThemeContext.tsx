@@ -61,6 +61,8 @@ export function ThemeProvider({
     } else {
       root.classList.add(theme);
       setResolvedTheme(theme);
+      // Return a no-op cleanup function for consistency
+      return () => {};
     }
   }, [theme]);
 

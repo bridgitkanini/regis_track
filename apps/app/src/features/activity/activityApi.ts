@@ -61,9 +61,9 @@ export const activityApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.data.map(({ _id }) => ({
+              ...result.data.map(({ id }) => ({
                 type: 'Activity' as const,
-                id: _id,
+                id: id,
               })),
               { type: 'Activity', id: 'LIST' },
             ]
@@ -92,9 +92,9 @@ export const activityApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ _id }) => ({
+              ...result.map(({ id }) => ({
                 type: 'Activity' as const,
-                id: _id,
+                id: id,
               })),
               { type: 'Activity', id: 'RECENT' },
             ]

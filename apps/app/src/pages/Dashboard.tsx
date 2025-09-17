@@ -72,10 +72,10 @@ export const Dashboard = () => {
     if (!activitiesData?.data) return [];
     return activitiesData.data.map((activity) => ({
       ...activity,
-      id: activity._id, // Map _id to id
+      id: activity.id, // Map _id to id
       collection: activity.collectionName, // Map collectionName to collection
       user: {
-        username: activity.user?.name || 'System',
+        username: activity.user?.username || 'System',
         avatar: activity.user?.avatar,
       },
     }));

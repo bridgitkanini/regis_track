@@ -21,8 +21,13 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock window.scrollTo
-window.scrollTo = vi.fn();
+// Mock window.scrollTo to handle both signatures:
+// 1. scrollTo(x, y)
+// 2. scrollTo(options)
+window.scrollTo = vi.fn((...args: [number, number] | [ScrollToOptions]) => {
+  // The mock doesn't need to do anything, just needs to accept the arguments
+  return;
+}) as Window['scrollTo'];
 
 // Mock ResizeObserver
 class ResizeObserver {
