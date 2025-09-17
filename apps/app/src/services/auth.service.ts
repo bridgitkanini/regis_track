@@ -32,9 +32,17 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
   return response.data;
 };
 
-export const getCurrentUser = async (): Promise<AuthResponse['user']> => {
-  const response = await apiClient.get<AuthResponse['user']>('/api/auth/me');
-  return response.data;
+export const getCurrentUser = async (): Promise<AuthResponse['user'] | null> => {
+  try {
+    const response = await apiClient.get<AuthResponse['user']>('/api/auth/me');
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      // Clear the invalid token
+      localStorage.removeItem('token');
+    }
+    return null;
+  }
 };
 
 export const logout = async (): Promise<void> => {

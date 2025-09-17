@@ -103,42 +103,47 @@ export const RecentActivity = ({
 
   // Generate page numbers for pagination
   const getPageNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers = new Set<number>();
     const maxPagesToShow = 5;
 
-    if (totalPages <= maxPagesToShow) {
-      // Show all pages if total pages are less than or equal to maxPagesToShow
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      // Show first page, current page, and pages around it
-      const startPage = Math.max(
-        1,
-        currentPage - Math.floor(maxPagesToShow / 2)
-      );
-      const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    // Always include first and last pages
+    pageNumbers.add(1);
+    pageNumbers.add(totalPages);
 
-      // Adjust if we're near the end
-      if (endPage - startPage + 1 < maxPagesToShow) {
-        const diff = maxPagesToShow - (endPage - startPage + 1);
-        if (startPage - diff > 0) {
-          for (let i = startPage - diff; i <= endPage; i++) {
-            pageNumbers.push(i);
-          }
-        } else {
-          for (let i = 1; i <= maxPagesToShow; i++) {
-            pageNumbers.push(i);
-          }
-        }
-      } else {
-        for (let i = startPage; i <= endPage; i++) {
-          pageNumbers.push(i);
-        }
+    // Add current page and pages around it
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.add(i);
+    }
+
+    // Add ellipsis for large page counts
+    if (totalPages > maxPagesToShow) {
+      // Add second page if not already included
+      if (!pageNumbers.has(2)) {
+        pageNumbers.add(2);
+      }
+      // Add second to last page if not already included
+      if (!pageNumbers.has(totalPages - 1)) {
+        pageNumbers.add(totalPages - 1);
       }
     }
 
-    return pageNumbers;
+    // Convert to array, sort, and ensure uniqueness
+    const sortedPages = Array.from(pageNumbers).sort((a, b) => a - b);
+    
+    // Add ellipsis where needed
+    const result: (number | '...')[] = [];
+    
+    for (let i = 0; i < sortedPages.length; i++) {
+      if (i > 0 && sortedPages[i] > sortedPages[i - 1] + 1) {
+        result.push('...');
+      }
+      result.push(sortedPages[i]);
+    }
+
+    return result;
   };
 
   if (activities.length === 0) {
@@ -292,22 +297,31 @@ export const RecentActivity = ({
                 <ChevronLeftIcon className="h-4 w-4" />
               </Button>
 
-              {getPageNumbers().map((page) => (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? 'primary' : 'ghost'}
-                  size="sm"
-                  className={cn(
-                    'rounded-none border-l border-border',
-                    page === currentPage
-                      ? 'z-10 bg-primary text-primary-foreground'
-                      : ''
-                  )}
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </Button>
-              ))}
+              {getPageNumbers().map((page, index) =>
+                page === '...' ? (
+                  <span 
+                    key={`ellipsis-${index}`} 
+                    className="px-3 py-1.5 text-sm text-muted-foreground flex items-center"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? 'primary' : 'ghost'}
+                    size="sm"
+                    className={cn(
+                      'rounded-none border-l border-border',
+                      page === currentPage
+                        ? 'z-10 bg-primary text-primary-foreground'
+                        : ''
+                    )}
+                    onClick={() => handlePageChange(page as number)}
+                  >
+                    {page}
+                  </Button>
+                )
+              )}
 
               <Button
                 variant="ghost"
