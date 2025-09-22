@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { User, Role } from '../models';
+import mongoose from 'mongoose';
+import { User, Role, Member } from '../models';
 import { ApiError } from '../middleware/error.middleware';
 import { ActivityLog } from '../models/activity-log.model';
 
@@ -74,32 +75,77 @@ export const register = async (
       throw new ApiError(400, 'Invalid role');
     }
 
-    // Create user
-    const user = await User.create({
-      username,
-      email,
-      password,
-      role: role._id,
-    });
+    // Start a session for atomic operations
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+      // Create user
+      const user = await User.create(
+        [{
+          username,
+          email,
+          password,
+          role: role._id,
+        }],
+        { session }
+      ).then(users => users[0]);
 
-    // Generate token
-    const token = user.generateAuthToken();
+      // Create a member for the new user
+      await Member.create(
+        [{
+          firstName: username.split(' ')[0] || username, // Use first part of username as first name
+          lastName: username.split(' ').slice(1).join(' ') || 'User', // Rest as last name if available
+          email,
+          role: role.name,
+          createdBy: user._id,
+          status: 'active',
+          dateOfBirth: new Date(), // Set a default date of birth
+          membershipStatus: 'active',
+          membershipStartDate: new Date(),
+        }],
+        { session }
+      );
 
-    // Note: No activity logging for registration since user is not authenticated yet
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
 
-    res.status(201).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: {
-          id: role._id,
-          name: role.name,
+      // Generate token
+      const token = user.generateAuthToken();
+
+      // Note: No activity logging for registration since user is not authenticated yet
+
+      return res.status(201).json({
+        success: true,
+        token,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: {
+            id: role._id,
+            name: role.name,
+          },
         },
-      },
-    });
+      });
+    } catch (error: unknown) {
+      // If anything fails, abort the transaction
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        session.endSession();
+      }
+      
+      // Type guard to check if error is a MongoDB duplicate key error
+      if (error && typeof error === 'object' && 'code' in error && 'keyPattern' in error) {
+        const mongoError = error as { code: number; keyPattern: Record<string, unknown> };
+        if (mongoError.code === 11000 && 'email' in mongoError.keyPattern) {
+          throw new ApiError(400, 'Email already exists as a member');
+        }
+      }
+      
+      throw error; // Re-throw for the global error handler
+    }
   } catch (error) {
     next(error);
   }
