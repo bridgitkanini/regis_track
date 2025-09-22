@@ -20,7 +20,6 @@ import { Settings } from './pages/Settings';
 import { Layout } from './components/layout/Layout';
 import { NotFound } from './pages/NotFound';
 import { Unauthorized } from './pages/Unauthorized';
-import { MemberLayout } from './layouts/MemberLayout';
 import { MemberDetail } from './components/members/MemberDetail';
 import { MemberForm } from './components/members/MemberForm';
 import MonthlyReport from './pages/reports/MonthlyReport';
@@ -88,16 +87,23 @@ function App() {
                   <Route path="dashboard" element={<Dashboard />} />
 
                   {/* Member management routes */}
-                  <Route
-                    path="members"
-                    element={
-                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                        <MemberLayout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<MembersPage />} />
-                    <Route path="new" element={<MemberForm />} />
+                  <Route path="members">
+                    <Route
+                      index
+                      element={
+                        <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                          <MembersPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="new"
+                      element={
+                        <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                          <MemberForm />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path=":id" element={<MemberDetail />} />
                     <Route path=":id/edit" element={<MemberForm />} />
                   </Route>
