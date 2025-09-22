@@ -31,7 +31,7 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
     <Disclosure as="nav" className="bg-card shadow-sm border-b">
       {({ open }) => (
         <>
-          <div className="container">
+          <div className="mx-auto px-4 sm:px-6">
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex flex-shrink items-center">
@@ -42,27 +42,6 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                     RegisTrack
                   </Link>
                 </div>
-                {user && (
-                  <div className="hidden sm:ml-6 sm:flex sm:space-x-2">
-                    {protectedNavigation.map((item) => {
-                      const isActive = currentPath.startsWith(item.href);
-                      return (
-                        <Link
-                          key={item.name}
-                          to={item.href}
-                          className={cn(
-                            isActive
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-foreground/80 hover:bg-accent/50 hover:text-foreground',
-                            'inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                          )}
-                        >
-                          {item.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
 
               <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
