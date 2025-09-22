@@ -13,9 +13,10 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LandingPage } from './pages/LandingPage';
 import { Dashboard } from './pages/Dashboard';
 import { MembersPage } from './pages/MembersPage';
-import { Profile } from './pages/Profile';
+import { ProfileWrapper } from './components/profile/ProfileWrapper';
 import { Settings } from './pages/Settings';
 import { Layout } from './components/layout/Layout';
 import { NotFound } from './pages/NotFound';
@@ -60,79 +61,54 @@ const ThemeWrapper = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-function App() {
+// Component to handle root path redirection
+function HomeRedirect() {
   const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/home" replace />;
+}
+
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ThemeWrapper>
-          <AuthProvider>
-            <Router>
+          <Router>
+            <AuthProvider>
               <Routes>
-                {/* Public routes */}
+                {/* Public Routes */}
+                <Route path="/home" element={<LandingPage />} />
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/register" element={<RegisterForm />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
-
-                {/* Protected routes */}
+                
+                {/* Protected Routes */}
                 <Route
-                  path="/"
                   element={
                     <ProtectedRoute>
                       <Layout />
                     </ProtectedRoute>
                   }
                 >
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-
-                  {/* Member management routes */}
-                  <Route path="members">
-                    <Route
-                      index
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                          <MembersPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="new"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                          <MemberForm />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path=":id" element={<MemberDetail />} />
-                    <Route path=":id/edit" element={<MemberForm />} />
-                  </Route>
-
-                  <Route path="profile" element={<Profile user={user!} />} />
-                  <Route
-                    path="settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  {/* Reports Routes */}
-                  <Route path="reports">
-                    <Route index element={<Navigate to="monthly" replace />} />
-                    <Route path="monthly" element={<MonthlyReport />} />
-                    <Route path="quarterly" element={<QuarterlyReport />} />
-                    <Route path="yearly" element={<YearlyReport />} />
-                  </Route>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/members" element={<MembersPage />} />
+                  <Route path="/members/new" element={<MemberForm />} />
+                  <Route path="/members/:id" element={<MemberDetail />} />
+                  <Route path="/members/:id/edit" element={<MemberForm />} />
+                  <Route path="/profile" element={<ProfileWrapper />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/reports/monthly" element={<MonthlyReport />} />
+                  <Route path="/reports/quarterly" element={<QuarterlyReport />} />
+                  <Route path="/reports/yearly" element={<YearlyReport />} />
                 </Route>
-
+                
+                {/* Root path redirects */}
+                <Route path="/" element={<HomeRedirect />} />
+                
                 {/* 404 - Catch all */}
-                {/* Catch all route */}
-                <Route path="*" element={<Navigate to="/404" replace />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
-            </Router>
-          </AuthProvider>
+            </AuthProvider>
+          </Router>
         </ThemeWrapper>
       </ThemeProvider>
     </QueryClientProvider>
