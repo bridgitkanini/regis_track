@@ -118,9 +118,6 @@ export const Sidebar = () => {
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64 border-r border-border bg-card">
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <h1 className="text-xl font-bold text-primary">RegisTrack</h1>
-          </div>
           <nav className="mt-5 flex-1 px-2 space-y-1">
             {navigation.map((item) =>
               !item.children ? (
@@ -209,17 +206,6 @@ export const Sidebar = () => {
               )
             )}
           </nav>
-        </div>
-        <div className="flex-shrink-0 flex border-t border-border p-4">
-          <div className="flex items-center">
-            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-              U
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-foreground">User Name</p>
-              <p className="text-xs text-muted-foreground">Admin</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
