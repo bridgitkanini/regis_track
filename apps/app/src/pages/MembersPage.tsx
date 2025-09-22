@@ -104,17 +104,17 @@ export const MembersPage = () => {
 
   if (isError) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
+      <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
               Error loading members
             </h3>
-            <div className="mt-2 text-sm text-red-700">
+            <div className="mt-2 text-sm text-red-700 dark:text-red-300">
               <p>Failed to load member data. Please try again later.</p>
               <button
                 onClick={() => refetch()}
-                className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
               >
                 Retry
               </button>
@@ -129,8 +129,8 @@ export const MembersPage = () => {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Members</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Members</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
             A list of all the members in your organization including their name,
             email, role, and status.
           </p>
@@ -147,7 +147,7 @@ export const MembersPage = () => {
 
       <MemberFilters onSearch={handleSearch} initialValues={filters} />
 
-      <div className="overflow-hidden bg-white shadow sm:rounded-md">
+      <div className="overflow-hidden bg-white dark:bg-muted/50 shadow sm:rounded-md">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <Loader size="md" />
@@ -162,7 +162,7 @@ export const MembersPage = () => {
             />
 
             {membersData?.data?.length === 0 ? (
-              <div className="px-6 py-4 text-center text-sm text-gray-500">
+              <div className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-muted/50">
                 No members found matching your criteria.
               </div>
             ) : null}
@@ -171,15 +171,15 @@ export const MembersPage = () => {
       </div>
 
       {membersData && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-muted/50 border-t border-gray-200 dark:border-gray-800 sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
-              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
                 page === 1
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600'
               }`}
             >
               Previous
@@ -187,10 +187,10 @@ export const MembersPage = () => {
             <button
               onClick={() => handlePageChange(page + 1)}
               disabled={page >= membersData.pages}
-              className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+              className={`ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
                 page >= membersData.pages
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600'
               }`}
             >
               Next
@@ -198,16 +198,16 @@ export const MembersPage = () => {
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 Showing{' '}
-                <span className="font-medium">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {membersData.total === 0 ? 0 : (page - 1) * 10 + 1}
                 </span>{' '}
                 to{' '}
-                <span className="font-medium">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {Math.min(page * 10, membersData.total)}
                 </span>{' '}
-                of <span className="font-medium">{membersData.total}</span>{' '}
+                of <span className="font-medium text-gray-900 dark:text-white">{membersData.total}</span>{' '}
                 results
               </p>
             </div>
