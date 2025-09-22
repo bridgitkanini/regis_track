@@ -121,10 +121,10 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+      <div className="bg-white dark:bg-muted/50 shadow px-4 py-5 sm:rounded-lg sm:p-6">
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">
               Dashboard
             </h2>
           </div>
@@ -133,7 +133,7 @@ export const Dashboard = () => {
               <input
                 type="text"
                 placeholder="Search activities..."
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -163,9 +163,9 @@ export const Dashboard = () => {
       )}
 
       {/* Recent Activity */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <div className="bg-white dark:bg-muted/50 shadow overflow-hidden sm:rounded-lg">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-800">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
             Recent Activity
           </h3>
           <p className="mt-1 text-sm text-gray-500">
@@ -174,8 +174,8 @@ export const Dashboard = () => {
         </div>
 
         {/* Items per page selector */}
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-          <div className="text-sm text-gray-500">
+        <div className="px-4 py-3 bg-gray-50 dark:bg-muted/50 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+          <div className="text-sm text-gray-500 dark:text-gray-300">
             Showing{' '}
             <span className="font-medium">
               {activitiesData ? (currentPage - 1) * itemsPerPage + 1 : 0}
@@ -192,7 +192,7 @@ export const Dashboard = () => {
           <div className="flex items-center">
             <label
               htmlFor="itemsPerPage"
-              className="mr-2 text-sm text-gray-600"
+              className="mr-2 text-sm text-gray-600 dark:text-gray-300"
             >
               Items per page:
             </label>
@@ -200,7 +200,7 @@ export const Dashboard = () => {
               id="itemsPerPage"
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="block w-20 pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              className="block w-20 pl-3 pr-10 py-1.5 text-base text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
